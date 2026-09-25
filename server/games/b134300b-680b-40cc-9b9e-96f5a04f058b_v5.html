@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Paddle Pong</title>
+    <style>
+        body{margin:0;background:#000;overflow:hidden}
+        canvas{display:block;margin:auto;background:#111}
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        /* -------------------------------------------------------------
+         *  Input handling
+         * ------------------------------------------------------------- */
+        const keys = {};
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+        });
+        window.addEventListener('keyup', e => {
+            keys[e.key] = false;
+        });
+
+        /* -------------------------------------------------------------
+         *  Canvas setup
+         * ------------------------------------------------------------- */
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+        canvas.addEventListener('click', () => window.focus());
+
+        /* -------------------------------------------------------------
+         *  Game entities – minimal but complete defaults
+         * ------------------------------------------------------------- */
+        const player = {
+            x: canvas.width / 2 - 50,   // centre horizontally
+            y: canvas.height - 30,      // near bottom
+            w: 100,
+            h: 20,
+            speed: 400,                 // pixels per second
+            health: 3
+        };
+
+        const ball = {
+            x: 0,
+            y: 0,
+            r: 10,
+            vx: 0,
+            vy: 0,
+            active: false
+        };
+
+        let targets = [];   // will be filled in init()
+        let score = 0;
+        let status = 'playing';
+        let gameStateInitialized = false;
+
+        /* -------------------------------------------------------------
+         *  Helper – Axis Aligned Bounding Box collision test
+         * ------------------------------------------------------------- */
+        function AABB(a, b) {
+            return a.x < b.x + b.w &&
+                   a.x + a.w > b.x &&
+                   a.y < b.y + b.h &&
+                   a.y + a.h > b.y;
+        }
+
+        /* -------------------------------------------------------------
+         *  Initialise static state (run once)
+         * ------------------------------------------------------------- */
+        function init() {
+            if (!gameStateInitialized) {
+                // place ball on top of the paddle
+                ball.x = player.x + player.w / 2;
+                ball.y = player.y - ball.r;
+                ball.vx = ball.vy = 0;
+                ball.active = false;
+
+                // create a simple row of targets
+                targets = [];
+                for (let i = 0; i < 8; i++) {
+                    targets.push({
+                        x: 50 + i * 90,
+                        y: 80,
+                        w: 60,
+                        h: 20,
+                        hit: false
+                    });
+                }
+
+                // expose state for external test harnesses
+                window.__gameState = {
+                    player: { ...player },
+                    score,
+                    status,
+                    entities: { ball, targets }
+                };
+
+                gameStateInitialized = true;
+            }
+        }
+
+        /* -------------------------------------------------------------
+         *  Core update – runs every frame
+         * ------------------------------------------------------------- */
+        function update(dt) {
+            // ----- INPUT ------------------------------------------------
+            if (keys['ArrowRight'] || keys['d']) {
+                player.x += player.speed * dt;
+            }
+            if (keys['ArrowLeft'] || keys['a']) {
+                player.x -= player.speed * dt;
+            }
+            // keep paddle inside canvas
+            player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+
+            // ----- SIMPLE BALL LOGIC (just keep it attached to paddle) ----
+            if (!ball.active) {
+                ball.x = player.x + player.w / 2;
+                ball.y = player.y - ball.r;
+            }
+
+            // ----- RENDER ------------------------------------------------
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // draw player (neon style)
+            ctx.fillStyle = '#0ff';
+            ctx.fillRect(player.x, player.y, player.w, player.h);
+
+            // draw ball
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2);
+            ctx.fillStyle = '#ff0';
+            ctx.fill();
+
+            // draw targets
+            ctx.fillStyle = '#f0f';
+            targets.forEach(t => {
+                if (!t.hit) {
+                    ctx.fillRect(t.x, t.y, t.w, t.h);
+                }
+            });
+
+            // draw score
+            ctx.fillStyle = '#fff';
+            ctx.font = '20px monospace';
+            ctx.fillText('Score: ' + score, 10, 30);
+        }
+
+        /* -------------------------------------------------------------
+         *  Game loop
+         * ------------------------------------------------------------- */
+        function gameLoop() {
+            init();                     // runs only once
+            update(1 / 60);             // fixed timestep for simplicity
+            requestAnimationFrame(gameLoop);
+        }
+
+        // start the loop
+        gameLoop();
+    </script>
+</body>
+</html>
+<<<FULL_REPLACEMENT>>>

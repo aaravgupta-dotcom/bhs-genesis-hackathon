@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Paddle Pong</title>
+    <style>
+        body{margin:0;background:#000;overflow:hidden}
+        canvas{display:block;margin:auto;background:#111}
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const keys={};
+        window.addEventListener('keydown',e=>{ /* ... */ });
+        window.addEventListener('keyup',e=>{ /* ... */ });
+        const canvas=document.getElementById('gameCanvas');
+        const ctx=canvas.getContext('2d');
+        canvas.width=800;
+        canvas.height=600;
+        canvas.addEventListener('click',()=>window.focus());
+        let player={ /* ... */ };
+        let ball={ /* ... */ };
+        let targets=[];
+        let score=0,status='playing';
+        let gameStateInitialized = false;
+
+        function init(){
+            if (!gameStateInitialized) {
+                ball.x=player.x+player.w/2;
+                ball.y=player.y-ball.r;
+                ball.vx=ball.vy=0;
+                ball.active=false;
+                targets=[];
+                for(let i=0;i<8;i++)
+                    targets.push({x:50+i*90,y:80,w:60,h:20});
+                window.__gameState={
+                    player:{x:player.x,y:player.y,w:player.w,h:player.h,health:player.health,speed:player.speed},
+                    score,
+                    status,
+                    entities:{ball,targets}
+                };
+                gameStateInitialized = true;
+            }
+        }
+
+        function gameLoop(){
+            init();
+            update(1/60);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function AABB(a,b){ /* ... */ }
+        function update(dt){ /* ... */ }
+
+        gameLoop();
+    </script>
+</body>
+</html>

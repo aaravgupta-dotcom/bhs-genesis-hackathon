@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodge Rush</title>
+    <style>
+        /* Basic styling for the game */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const keys = {};
+
+        let player = {
+            x: 100,
+            y: 100,
+            width: 40,
+            height: 40,
+            health: 100,
+            speed: 5
+        };
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+
+        let lastTime = performance.now();
+
+        function update(dt) {
+            if (keys['ArrowUp']) {
+                player.y -= player.speed * dt;
+            }
+            if (keys['ArrowDown']) {
+                player.y += player.speed * dt;
+            }
+            if (keys['ArrowLeft']) {
+                player.x -= player.speed * dt;
+            }
+            if (keys['ArrowRight']) {
+                player.x += player.speed * dt;
+            }
+
+            // Clamp player within canvas
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+            // Update entities
+            for (let i = entities.length - 1; i >= 0; i--) {
+                const e = entities[i];
+                e.y += e.vy * dt;
+                if (checkAABB(player, e)) {
+                    player.health -= 25;
+                    entities.splice(i, 1);
+                    if (player.health <= 0) {
+                        status = 'lost';
+                    }
+                } else if (e.y > canvas.height + 50) {
+                    entities.splice(i, 1);
+                }
+            }
+
+            // Increase speed every 10 seconds
+            if (score % 10 === 0) {
+                player.speed += 0.5;
+            }
+
+            // Update game state
+            window.__gameState = {
+                player: {
+                    x: player.x,
+                    y: player.y,
+                    width: player.width,
+                    height: player.height,
+                    health: player.health,
+                    speed: player.speed
+                },
+                score: score,
+                status: status,
+                entities: entities
+            };
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw player
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            // Draw entities
+            for (let i = 0; i < entities.length; i++) {
+                const e = entities[i];
+                ctx.fillStyle = e.color;
+                ctx.fillRect(e.x, e.y, e.width, e.height);
+            }
+
+            // Draw score and health
+            ctx.font = '24px Arial';
+            ctx.fillStyle = '#fff';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Score: ${window.__gameState.score}`, 10, 10);
+            ctx.fillText(`Health: ${window.__gameState.player.health}`, 10, 40);
+
+            // Draw status
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            if (status === 'playing') {
+                ctx.fillText('Playing', canvas.width / 2, canvas.height / 2);
+            } else if (status === 'lost') {
+                ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+            } else if (status === 'won') {
+                ctx.fillText('You Won!', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function checkAABB(a, b) {
+            return a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
+        }
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+
+            if (window.__gameState && window.__gameState.status === 'playing') {
+                update(dt);
+            }
+
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+
+        // Input handling
+        window.addEventListener('keydown', (e) => {
+            if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+                e.preventDefault();
+            }
+            keys[e.key] = true;
+            keys[e.key.toLowerCase()] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        // Allow click to focus
+        canvas.addEventListener('click', () => window.focus());
+
+        // Spawn entities
+        let spawnTimer = 0;
+        const entities = [];
+        function spawnEntity() {
+            spawnTimer += 1 / 60;
+            if (spawnTimer > 0.5) {
+                spawnTimer = 0;
+                entities.push({
+                    x: Math.random() * (canvas.width - 24),
+                    y: -30,
+                    width: 24,
+                    height: 24,
+                    vy: 120 + Math.random() * 100,
+                    color: '#D8125B'
+                });
+            }
+        }
+        setInterval(spawnEntity, 1000 / 60);
+    </script>
+</body>
+</html>

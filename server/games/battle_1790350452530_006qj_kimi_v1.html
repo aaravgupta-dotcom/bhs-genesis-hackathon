@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dodge Rush</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #f0f0f0;
+        }
+        #gameCanvas {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+        let lastTime = performance.now();
+        let player = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            width: 50,
+            height: 50,
+            health: 100,
+            speed: 5,
+            vy: 0
+        };
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+        const keys = {};
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+        canvas.addEventListener('click', () => window.focus());
+
+        function update(dt) {
+            if (status === 'playing') {
+                if (keys['ArrowLeft'] || keys['a']) {
+                    player.x -= player.speed * dt;
+                }
+                if (keys['ArrowRight'] || keys['d']) {
+                    player.x += player.speed * dt;
+                }
+                if (keys['ArrowUp'] || keys['w']) {
+                    player.vy = -10;
+                }
+                if (keys['ArrowDown'] || keys['s']) {
+                    player.vy = 10;
+                }
+                player.vy += 0.5 * dt;
+                player.y += player.vy * dt;
+                player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+                player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+                entities.forEach((entity, index) => {
+                    if (checkAABB(player, entity)) {
+                        player.health -= 25;
+                        entities.splice(index, 1);
+                        if (player.health <= 0) {
+                            status = 'lost';
+                        }
+                    } else if (entity.y > canvas.height + 50) {
+                        entities.splice(index, 1);
+                    }
+                });
+
+                if (status === 'playing') {
+                    score += dt;
+                    if (score > 60) {
+                        status = 'won';
+                    }
+                }
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Score: ${Math.floor(score)}`, 10, 10);
+            ctx.fillText(`Health: ${player.health}`, 10, 40);
+            ctx.fillText(status, canvas.width / 2 - 50, canvas.height / 2);
+            if (status === 'playing') {
+                entities.forEach((entity) => {
+                    ctx.fillStyle = entity.color;
+                    ctx.fillRect(entity.x, entity.y, entity.width, entity.width);
+                });
+                ctx.fillStyle = 'blue';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+            } else if (status === 'won') {
+                ctx.fillStyle = 'green';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('You Won!', canvas.width / 2, canvas.height / 2);
+            } else if (status === 'lost') {
+                ctx.fillStyle = 'red';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+            if (window.__gameState && window.__gameState.status === 'playing') {
+                update(dt);
+            }
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function checkAABB(a, b) {
+            return a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
+        }
+
+        function spawnEntity() {
+            if (Math.random() < 0.4) {
+                entities.push({
+                    x: Math.random() * (canvas.width - 24),
+                    y: -30,
+                    width: 24,
+                    height: 24,
+                    vy: 120 + Math.random() * 100,
+                    color: '#D8125B'
+                });
+            } else {
+                entities.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    vy: 80 + Math.random() * 60,
+                    color: '#F0C020'
+                });
+            }
+        }
+
+        function updateArcade(dt) {
+            spawnEntity();
+            entities.forEach((entity, index) => {
+                entity.y += entity.vy * dt;
+                if (checkAABB(player, entity)) {
+                    player.health -= 25;
+                    entities.splice(index, 1);
+                    if (player.health <= 0) {
+                        status = 'lost';
+                    }
+                } else if (entity.y > canvas.height + 50) {
+                    entities.splice(index, 1);
+                }
+            });
+        }
+
+        requestAnimationFrame(gameLoop);
+        window.__gameState = {
+            player: {
+                x: player.x,
+                y: player.y,
+                width: player.width,
+                height: player.height,
+                health: player.health,
+                speed: player.speed
+            },
+            score: score,
+            status: status,
+            entities: entities
+        };
+    </script>
+</body>
+</html>

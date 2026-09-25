@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Arena Showdown</title>
+    <style>
+        #gameCanvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+        let lastTime = performance.now();
+        let player = {
+            x: 400,
+            y: 300,
+            width: 24,
+            height: 24,
+            health: 100,
+            speed: 200,
+            vy: 0
+        };
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+        let keys = {};
+
+        window.__gameState = {
+            player: {
+                x: player.x,
+                y: player.y,
+                width: player.width,
+                height: player.height,
+                health: player.health,
+                speed: player.speed
+            },
+            score: score,
+            status: status,
+            entities: entities
+        };
+
+        canvas.addEventListener('click', () => window.focus());
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            if (e.key === 'ArrowLeft' || e.key === 'a') player.vy = -player.speed;
+            if (e.key === 'ArrowRight' || e.key === 'd') player.vy = player.speed;
+            if (e.key === 'ArrowUp' || e.key === 'w') player.vy = -player.speed * 1.5;
+            if (e.key === 'ArrowDown' || e.key === 's') player.vy = player.speed * 1.5;
+            if (e.key === ' ') fireBullet();
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            player.vy = 0;
+        });
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+            if (window.__gameState && window.__gameState.status === 'playing') {
+                update(dt);
+            }
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update(dt) {
+            player.x += player.vy * dt;
+            player.y += player.vy * dt;
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+            spawnHazards(dt);
+            updateHazards(dt);
+            updateBullets(dt);
+            updateScore();
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText('Score: ' + window.__gameState.score, 10, 10);
+            ctx.fillText('Health: ' + window.__gameState.player.health, 10, 40);
+            ctx.fillText(window.__gameState.status, 10, 70);
+            drawPlayer();
+            drawHazards();
+            drawBullets();
+            drawScoreOverlay();
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function drawHazards() {
+            for (let i = 0; i < entities.length; i++) {
+                const e = entities[i];
+                if (e.type === 'hazard') {
+                    ctx.fillStyle = e.color;
+                    ctx.fillRect(e.x, e.y, e.width, e.height);
+                }
+            }
+        }
+
+        function drawBullets() {
+            for (let i = 0; i < entities.length; i++) {
+                const e = entities[i];
+                if (e.type === 'bullet') {
+                    ctx.fillStyle = e.color;
+                    ctx.fillRect(e.x, e.y, e.width, e.height);
+                }
+            }
+        }
+
+        function drawScoreOverlay() {
+            ctx.fillStyle = 'white';
+            ctx.font = '48px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('Score: ' + window.__gameState.score, canvas.width / 2, canvas.height / 2);
+            ctx.font = '24px Arial';
+            ctx.fillText('Press Space to shoot', canvas.width / 2, canvas.height / 2 + 50);
+        }
+
+        function spawnHazards(dt) {
+            if (Math.random() < 0.05) {
+                entities.push({
+                    type: 'hazard',
+                    x: Math.random() * (canvas.width - 24),
+                    y: -30,
+                    width: 24,
+                    height: 24,
+                    vy: 120 + Math.random() * 100,
+                    color: '#D8125B'
+                });
+            }
+        }
+
+        function updateHazards(dt) {
+            for (let i = entities.length - 1; i >= 0; i--) {
+                const e = entities[i];
+                if (e.type === 'hazard') {
+                    e.y += e.vy * dt;
+                    if (checkAABB(player, e)) {
+                        player.health -= 25;
+                        entities.splice(i, 1);
+                        if (player.health <= 0) status = 'lost';
+                    } else if (e.y > canvas.height + 50) {
+                        entities.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        function updateBullets(dt) {
+            for (let i = entities.length - 1; i >= 0; i--) {
+                const e = entities[i];
+                if (e.type === 'bullet') {
+                    e.y += e.vy * dt;
+                    if (e.y < -20) {
+                        entities.splice(i, 1);
+                        continue;
+                    }
+                    for (let j = entities.length - 1; j >= 0; j--) {
+                        const e2 = entities[j];
+                        if (e2.type === 'hazard') {
+                            if (checkAABB(e, e2)) {
+                                entities.splice(i, 1);
+                                entities.splice(j, 1);
+                                score += 100;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        function updateScore() {
+            window.__gameState.score = score;
+            window.__gameState.player.health = player.health;
+            window.__gameState.status = status;
+            window.__gameState.entities = entities;
+        }
+
+        function checkAABB(a, b) {
+            return a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
+        }
+
+        function fireBullet

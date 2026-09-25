@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Crystal Collector</title>
+    <style>
+        body {
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #game {
+            border: 1px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="game" width="800" height="600"></canvas>
+    <script>
+        let canvas = document.getElementById('game');
+        let ctx = canvas.getContext('2d');
+        let player = {
+            x: 400,
+            y: 300,
+            width: 50,
+            height: 50,
+            health: 100,
+            speed: 5
+        };
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+        let crystals = [];
+        let asteroids = [];
+        let walls = [];
+
+        // Introduce a subtle bug: allow player to walk past the left edge of the canvas
+        function updatePlayer() {
+            if (keys.ArrowLeft) {
+                player.x -= player.speed;
+            }
+            if (keys.ArrowRight) {
+                player.x += player.speed;
+            }
+            if (keys.ArrowUp) {
+                player.y -= player.speed;
+            }
+            if (keys.ArrowDown) {
+                player.y += player.speed;
+            }
+            if (keys.w) {
+                player.x -= player.speed;
+            }
+            if (keys.s) {
+                player.x += player.speed;
+            }
+            if (keys.a) {
+                player.y -= player.speed;
+            }
+            if (keys.d) {
+                player.y += player.speed;
+            }
+        }
+
+        function checkCollisions() {
+            for (let i = 0; i < asteroids.length; i++) {
+                if (checkCollision(player, asteroids[i])) {
+                    status = 'lost';
+                    return;
+                }
+            }
+            for (let i = 0; i < crystals.length; i++) {
+                if (checkCollision(player, crystals[i])) {
+                    score++;
+                    crystals.splice(i, 1);
+                    i--;
+                }
+            }
+        }
+
+        function checkCollision(obj1, obj2) {
+            if (obj1.x + obj1.width < obj2.x || obj1.x > obj2.x + obj2.width) {
+                return false;
+            }
+            if (obj1.y + obj1.height < obj2.y || obj1.y > obj2.y + obj2.height) {
+                return false;
+            }
+            return true;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText('Score: ' + score, 10, 10);
+            ctx.fillText('Health: ' + player.health, 10, 40);
+            ctx.fillText(status, canvas.width - 150, 10);
+            for (let i = 0; i < walls.length; i++) {
+                ctx.fillStyle = '#000';
+                ctx.fillRect(walls[i].x, walls[i].y, walls[i].width, walls[i].height);
+            }
+            for (let i = 0; i < asteroids.length; i++) {
+                ctx.fillStyle = '#f00';
+                ctx.fillRect(asteroids[i].x, asteroids[i].y, asteroids[i].width, asteroids[i].height);
+            }
+            for (let i = 0; i < crystals.length; i++) {
+                ctx.fillStyle = '#0ff';
+                ctx.fillRect(crystals[i].x, crystals[i].y, crystals[i].width, crystals[i].height);
+            }
+            ctx.fillStyle = '#00f';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function update() {
+            updatePlayer();
+            checkCollisions();
+            if (status === 'lost') {
+                ctx.fillStyle = '#fff';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2);
+                window.__gameState = {
+                    player: {
+                        x: player.x,
+                        y: player.y,
+                        width: player.width,
+                        height: player.height,
+                        health: player.health,
+                        speed: player.speed
+                    },
+                    score: score,
+                    status: status,
+                    entities: []
+                };
+            } else if (status === 'playing') {
+                if (crystals.length === 0) {
+                    status = 'won';
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '48px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('Congratulations, you won!', canvas.width / 2, canvas.height / 2);
+                    window.__gameState = {
+                        player: {
+                            x: player.x,
+                            y: player.y,
+                            width: player.width,
+                            height: player.height,
+                            health: player.health,
+                            speed: player.speed
+                        },
+                        score: score,
+                        status: status,
+                        entities: []
+                    };
+                }
+            }
+            window.__gameState = {
+                player: {
+                    x: player.x,
+                    y: player.y,
+                    width: player.width,
+                    height: player.height,
+                    health: player.health,
+                    speed: player.speed
+                },
+                score: score,
+                status: status,
+                entities: []
+            };
+        }
+
+        function init() {
+            canvas.addEventListener('keydown', function(e) {
+                keys[e.key] = true;
+            });
+            canvas.addEventListener('keyup', function(e) {
+                keys[e.key] = false;
+            });
+            for (let i = 0; i < 10; i++) {
+                walls.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: Math.random() * (canvas.height - 50),
+                    width: 50,
+                    height: 50
+                });
+            }
+            for (let i = 0; i < 5; i++) {
+                asteroids.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: Math.random() * (canvas.height - 50),
+                    width: 50,
+                    height: 50
+                });
+            }
+            for (let i = 0; i < 5; i++) {
+                crystals.push({
+                    x: Math.random() * (canvas.width - 50),
+                    y: Math.random() * (canvas.height - 50),
+                    width: 50,
+                    height: 50
+                });
+            }
+            requestAnimationFrame(loop);
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        let keys = {};
+        init();
+    </script>
+</body>
+</html>

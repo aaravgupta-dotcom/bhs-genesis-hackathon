@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head><style>body { margin: 0; background: #111; }</style></head>
+<body>
+<canvas id='c' width='800' height='600'></canvas>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  window.__gameState = {
+    player: { x: 100, y: 100, width: 20, height: 20, health: 100, speed: 5 },
+    score: 0,
+    status: 'playing',
+    entities: []
+  };
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === 'd') window.__gameState.player.x += 10;
+    if (e.key === 'ArrowLeft' || e.key === 'a') window.__gameState.player.x -= 10;
+  });
+  function loop() {
+    ctx.fillStyle = '#222';
+    ctx.fillRect(0, 0, 800, 600);
+    ctx.fillStyle = '#D8125B';
+    ctx.fillRect(window.__gameState.player.x, window.__gameState.player.y, 20, 20);
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Showdown</title>
+    <style>
+        #gameCanvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const keys = {};
+
+        let player = {
+            x: 400,
+            y: 300,
+            width: 50,
+            height: 50,
+            health: 100,
+            speed: 5,
+            vy: 0,
+        };
+
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+
+        window.__gameState = {
+            player: {
+                x: player.x,
+                y: player.y,
+                width: player.width,
+                height: player.height,
+                health: player.health,
+                speed: player.speed,
+            },
+            score: score,
+            status: status,
+            entities: entities,
+        };
+
+        canvas.width = 800;
+        canvas.height = 600;
+
+        let lastTime = performance.now();
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+
+            if (window.__gameState && window.__gameState.status === 'playing') {
+                update(dt);
+            }
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update(dt) {
+            if (keys.ArrowLeft) {
+                player.x -= player.speed * dt;
+            }
+            if (keys.ArrowRight) {
+                player.x += player.speed * dt;
+            }
+            if (keys.ArrowUp) {
+                player.vy = -10;
+            } else {
+                player.vy = 0;
+            }
+            if (keys.ArrowDown) {
+                player.vy = 10;
+            } else {
+                player.vy = 0;
+            }
+            if (keys.w) {
+                player.x -= player.speed * dt;
+            }
+            if (keys.a) {
+                player.x += player.speed * dt;
+            }
+            if (keys.s) {
+                player.vy = -10;
+            } else {
+                player.vy = 0;
+            }
+            if (keys.d) {
+                player.vy = 10;
+            } else {
+                player.vy = 0;
+            }
+            if (keys.Space) {
+                entities.push({
+                    x: player.x + player.width / 2,
+                    y: player.y,
+                    width: 10,
+                    height: 10,
+                    vy: -10,
+                    color: 'blue',
+                });
+            }
+
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            player.y += player.vy * dt;
+            player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+            for (let i = entities.length - 1; i >= 0; i--) {
+                const e = entities[i];
+                e.y += e.vy * dt;
+                if (checkAABB(player, e)) {
+                    player.health -= 25;
+                    entities.splice(i, 1);
+                    if (player.health <= 0) {
+                        status = 'lost';
+                    }
+                } else if (e.y > canvas.height + 50) {
+                    entities.splice(i, 1);
+                }
+            }
+
+            score = entities.filter(e => e.color === 'blue').length * 10;
+
+            if (score >= 100) {
+                status = 'won';
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'yellow';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+
+            for (let e of entities) {
+                ctx.fillStyle = e.color;
+                ctx.fillRect(e.x, e.y, e.width, e.width);
+            }
+
+            ctx.font = '24px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Score: ${score}`, 10, 10);
+            ctx.fillText(`Health: ${player.health}`, 10, 40);
+            ctx.fillText(status, canvas.width / 2 - 50, canvas.height / 2);
+
+            window.__gameState = {
+                player: {
+                    x: player.x,
+                    y: player.y,
+                    width: player.width,
+                    height: player.height,
+                    health: player.health,
+                    speed: player.speed,
+                },
+                score: score,
+                status: status,
+                entities: entities,
+            };
+        }
+
+        function checkAABB(a, b) {
+            return a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y;
+        }
+
+        canvas.addEventListener('click', () => window.focus());
+
+        window.addEventListener('keydown', e => {
+            keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', e => {
+            keys[e.key] = false;
+        });
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

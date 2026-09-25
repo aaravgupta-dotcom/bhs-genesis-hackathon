@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Dodgeball Frenzy</title>
+  <style>
+    #canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="canvas" width="800" height="600"></canvas>
+  <script>
+    const keys = {};
+    const game = {
+      title: 'Dodgeball Frenzy',
+      player: {
+        x: 400,
+        y: 300,
+        width: 50,
+        height: 50,
+        health: 100,
+        speed: 5
+      },
+      balls: [],
+      score: 0,
+      status: 'playing',
+      canvas: document.getElementById('canvas'),
+      ctx: document.getElementById('canvas').getContext('2d'),
+      init: function() {
+        this.canvas.addEventListener('click', () => window.focus());
+        this.loop();
+        window.addEventListener('keydown', (e) => {
+          if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) e.preventDefault();
+          keys[e.key] = true;
+          keys[e.key.toLowerCase()] = true;
+        });
+        window.addEventListener('keyup', (e) => {
+          keys[e.key] = false;
+          keys[e.key.toLowerCase()] = false;
+        });
+      },
+      loop: (function() {
+        let lastTime = 0;
+        return function() {
+          const now = Date.now();
+          const deltaTime = now - lastTime;
+          lastTime = now;
+          if (game.status === 'playing') {
+            requestAnimationFrame(() => {
+              game.update(deltaTime);
+              game.render();
+              game.loop();
+            });
+          }
+        };
+      })(),
+      update: function(deltaTime) {
+        if (keys['ArrowLeft']) this.player.x -= this.player.speed;
+        if (keys['ArrowRight']) this.player.x += this.player.speed;
+        if (keys['ArrowUp']) this.player.y -= this.player.speed;
+        if (keys['ArrowDown']) this.player.y += this.player.speed;
+        this.player.x = Math.max(0, Math.min(this.canvas.width - this.player.width, this.player.x));
+        this.player.y = Math.max(0, Math.min(this.canvas.height - this.player.height, this.player.y));
+        if (this.balls.length > 0) {
+          for (let i = 0; i < this.balls.length; i++) {
+            this.balls[i].x += this.balls[i].speedX;
+            this.balls[i].y += this.balls[i].speedY;
+            if (this.balls[i].x < 0 || this.balls[i].x > this.canvas.width || this.balls[i].y < 0 || this.balls[i].y > this.canvas.height) {
+              this.balls.splice(i, 1);
+              i--;
+            }
+            if (this.checkCollision(this.player, this.balls[i])) {
+              this.status = 'lost';
+            }
+          }
+        }
+        this.player.health -= 0.1;
+        if (this.player.health <= 0) {
+          this.status = 'lost';
+        }
+        this.score++;
+        if (this.score % 60 === 0) {
+          this.status = 'won';
+        }
+        window.__gameState = {
+          player: {
+            x: this.player.x,
+            y: this.player.y,
+            width: this.player.width,
+            height: this.player.height,
+            health: this.player.health,
+            speed: this.player.speed
+          },
+          score: this.score,
+          status: this.status,
+          entities: this.balls
+        };
+      },
+      render: function() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = 'black';
+        this.ctx.fillRect(this.player.x, this.player.y, this.player.width, this.player.height);
+        this.ctx.font = '24px Arial';
+        this.ctx.fillStyle = 'white';
+        this.ctx.fillText(`Score: ${this.score}`, 10, 30);
+        this.ctx.fillText(`Health: ${this.player.health}`, 10, 60);
+        this.ctx.fillText(this.status, 10, 90);
+        if (this.balls.length > 0) {
+          for (let i = 0; i < this.balls.length; i++) {
+            this.ctx.fillStyle = 'red';
+            this.ctx.fillRect(this.balls[i].x, this.balls[i].y, 10, 10);
+          }
+        }
+      },
+      checkCollision: function(obj1, obj2) {
+        if (obj1.x + obj1.width > obj2.x && obj1.x < obj2.x + obj2.width && obj1.y + obj1.height > obj2.y && obj1.y < obj2.y + obj2.height) {
+          return true;
+        }
+        return false;
+      },
+      addBall: function() {
+        this.balls.push({
+          x: Math.random() * this.canvas.width,
+          y: Math.random() * this.canvas.height,
+          speedX: Math.random() * 2 - 1,
+          speedY: Math.random() * 2 - 1
+        });
+      }
+    };
+
+    game.init();
+    setInterval(() => {
+      game.addBall();
+    }, 1000);
+  </script>
+</body>
+</html>

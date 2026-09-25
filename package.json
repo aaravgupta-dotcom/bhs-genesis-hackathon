@@ -1,0 +1,14 @@
+{
+  "name": "autonomous-game-architect",
+  "version": "1.0.0",
+  "description": "Autonomous Game Architect — Closed-Loop Self-Healing Game Generation Engine",
+  "private": true,
+  "scripts": {
+    "start": "node server/index.js",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "test:synthetic": "cd server && npm run test:synthetic",
+    "test:runner": "cd server && node -e \"import('./services/playwright-runner.js').then(() => console.log('Runner OK'))\""
+  }
+}

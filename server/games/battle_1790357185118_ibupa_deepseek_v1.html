@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Neon Astro Rush</title>
+<style>
+  body{margin:0;background:#000;overflow:hidden;font-family:sans-serif;color:#0ff;}
+  canvas{display:block;margin:auto;background:#111;}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+const keys={};
+window.addEventListener('keydown',e=>{keys[e.code]=true; if(e.code==='KeyR'&&window.__gameState.status!=='playing')reset();});
+window.addEventListener('keyup',e=>keys[e.code]=false);
+const canvas=document.getElementById('gameCanvas');
+const ctx=canvas.getContext('2d');
+canvas.width=800;canvas.height=600;
+canvas.addEventListener('click',()=>window.focus());
+
+let player, fuel, distance, score, status, entities, spawnTimer, requiredFuel, collectedFuel;
+function init(){
+  player={x:canvas.width/2-20,y:canvas.height-80,w:40,h:40,health:100,speed:200};
+  fuel=100; distance=0; score=0; status='playing'; entities=[]; spawnTimer=0;
+  requiredFuel=10; collectedFuel=0;
+  window.__gameState={player:{x:player.x,y:player.y,w:player.w,h:player.h,health:player.health,speed:player.speed},
+    score, status, entities};
+}
+function reset(){init();}
+function checkAABB(a,b){
+  return a.x<a.x+b.w&&a.x+a.w>b.x&&a.y<a.y+b.h&&a.y+a.h>b.y;
+}
+function spawn(dt){
+  spawnTimer+=dt;
+  if(spawnTimer>0.5){
+    spawnTimer=0;
+    if(entities.length<40){
+      // obstacle
+      entities.push({type:'obstacle',x:Math.random()*(canvas.width-30),y:-30,w:30,h:30,vy:150+Math.random()*100,color:'#D8125B'});
+      // fuel cell
+      if(Math.random()<0.4)entities.push({type:'fuel',x:Math.random()*(canvas.width-20),y:-20,w:20,h:20,vy:100+Math.random()*80,color:'#F0C020'});
+    }
+  }
+}
+function update(dt){
+  // movement
+  let dx=0,dy=0;
+  if(keys['ArrowLeft'])dx--;
+  if(keys['ArrowRight'])dx++;
+  if(keys['ArrowUp'])dy--;
+  if(keys['ArrowDown'])dy++;
+  const norm=Math.hypot(dx,dy)||1;
+  const sp=player.speed*(keys['Space']?1.5:1);
+  player.x+=dx/norm*sp*dt;
+  player.y+=dy/norm*sp*dt;
+  // clamp
+  player.x=Math.max(0,Math.min(canvas.width-player.w,player.x));
+  player.y=Math.max(0,Math.min(canvas.height-player.h,player.y));
+  // fuel consumption
+  fuel-=5*dt;
+  if(fuel<=0)status='lost';
+  // distance & score
+  distance+=sp*dt;
+  score=Math.floor(distance/10)+collectedFuel*20;
+  // spawn
+  spawn(dt);
+  // update entities
+  for(let i=entities.length-1;i>=0;i--){
+    const e=entities[i];
+    e.y+=e.vy*dt;
+    const screen={x:e.x,y:e.y,w:e.w,h:e.h};
+    if(checkAABB(player,screen)){
+      if(e.type==='obstacle'){
+        status='lost';
+        break;
+      }else if(e.type==='fuel'){
+        fuel=Math.min(100,fuel+30);
+        collectedFuel++;
+        entities.splice(i,1);
+        continue;
+      }
+    }
+    if(e.y>canvas.height+50)entities.splice(i,1);
+  }
+  // win check
+  if(distance>=5000 && collectedFuel>=requiredFuel)status='won';
+  // expose state
+  window.__gameState={player:{x:player.x,y:player.y,w:player.w,h:player.h,health:player.health,speed:player.speed},
+    score, status, entities};
+}
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // stars
+  ctx.fillStyle='#222';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let i=0;i<30;i++){
+    ctx.fillStyle='#555';
+    ctx.fillRect(Math.random()*canvas.width,Math.random()*canvas.height,2,2);
+  }
+  // player
+  ctx.fillStyle='#0ff';
+  ctx.beginPath();
+  ctx.moveTo(player.x+player.w/2,player.y);
+  ctx.lineTo(player.x,player.y+player.h);
+  ctx.lineTo(player.x+player.w,player.y+player.h);
+  ctx.closePath();ctx.fill();
+  // entities
+  entities.forEach(e=>{
+    ctx.fillStyle=e.color;
+    ctx.fillRect(e.x,e.y,e.w,e.h);
+  });
+  // UI
+  ctx.fillStyle='#0f0';
+  ctx.fillText(`Score: ${score}`,10,20);
+  ctx.fillText(`Fuel: ${Math.floor(fuel)}`,10,40);
+  ctx.fillText(`Dist: ${Math.floor(distance)}`,10,60);
+  ctx.fillText(`Fuel Cells: ${collectedFuel}/${requiredFuel}`,10,80);
+  // overlays
+  if(status!=='playing'){
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.fillStyle='#ff0';
+    ctx.textAlign='center';
+    ctx.font='48px sans-serif';
+    ctx.fillText(status==='won'?'YOU WIN!':'GAME OVER',canvas.width/2,canvas.height/2-20);
+    ctx.font='24px sans-serif';
+    ctx.fillText('Press R to Restart',canvas.width/2,canvas.height/2+30);
+  }
+}
+let last=performance.now();
+function loop(now){
+  const dt=Math.min((now-last)/1000,0.1);
+  last=now;
+  if(window.__gameState.status==='playing')update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+init();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

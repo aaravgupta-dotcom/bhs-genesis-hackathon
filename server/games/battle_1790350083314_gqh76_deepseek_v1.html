@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arena Showdown</title>
+    <style>
+        #gameCanvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let lastTime = performance.now();
+        let player = {
+            x: 400,
+            y: 300,
+            width: 24,
+            height: 24,
+            health: 100,
+            speed: 200
+        };
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+        const keys = {};
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        canvas.addEventListener('click', () => window.focus());
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+            if (status === 'playing') {
+                update(dt);
+            }
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function update(dt) {
+            player.x += (keys['ArrowRight'] ? 1 : 0) * player.speed * dt - (keys['ArrowLeft'] ? 1 : 0) * player.speed * dt;
+            player.y += (keys['ArrowDown'] ? 1 : 0) * player.speed * dt - (keys['ArrowUp'] ? 1 : 0) * player.speed * dt;
+            player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+            spawnEntities(dt);
+            updateEntities(dt);
+            checkCollisions();
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            drawPlayer();
+            drawEntities();
+            drawScore();
+            drawStatus();
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = 'white';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function drawEntities() {
+            for (let i = entities.length - 1; i >= 0; i--) {
+                const entity = entities[i];
+                ctx.fillStyle = entity.color;
+                ctx.fillRect(entity.x, entity.y, entity.width, entity.height);
+            }
+        }
+
+        function drawScore() {
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText('Score: ' + score, 10, 10);
+        }
+
+        function drawStatus() {
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(status, 10, 40);
+        }
+
+        function spawnEntities(dt) {
+            if (Math.random() < 0.05) {
+                entities.push({
+                    x: Math.random() * (canvas.width - 24),
+                    y: -30,
+                    width: 24,
+                    height: 24,
+                    vy: 120 + Math.random() * 100,
+                    color: '#D8125B'
+                });
+            }
+            if (Math.random() < 0.02) {
+                entities.push({
+                    x: Math.random() * (canvas.width - 20),
+                    y: -20,
+                    width: 20,
+                    height: 20,
+                    vy: 80 + Math.random() * 60,
+                    color: '#F0C020'
+                });
+            }
+        }
+
+        function updateEntities(dt) {
+            for (let i = entities.length - 1; i >= 0; i--) {
+                const entity = entities[i];
+                entity.y += entity.vy * dt;
+                if (entity.y > canvas.height + 50) {
+                    entities.splice(i, 1);
+                }
+            }
+        }
+
+        function checkCollisions() {
+            for (let i = entities.length - 1; i >= 0; i--) {
+                const entity = entities[i];
+                if (checkAABB(player, entity)) {
+                    if (entity.color === '#D8125B') {
+                        player.health -= 25;
+                        entities.splice(i, 1);
+                        if (player.health <= 0) {
+                            status = 'lost';
+                        }
+                    } else {
+                        score += 100;
+                        entities.splice(i, 1);
+                    }
+                }
+            }
+        }
+
+        function checkAABB(a, b) {
+            return (a.x < b.x + b.width &&
+                a.x + a.width > b.x &&
+                a.y < b.y + b.height &&
+                a.y + a.height > b.y);
+        }
+
+        window.__gameState = {
+            player: {
+                x: player.x,
+                y: player.y,
+                width: player.width,
+                height: player.height,
+                health: player.health,
+                speed: player.speed
+            },
+            score: score,
+            status: status,
+            entities: entities
+        };
+
+        gameLoop(performance.now());
+    </script>
+</body>
+</html>

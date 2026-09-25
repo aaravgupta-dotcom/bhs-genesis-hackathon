@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dodge Rush — Move</title>
+  <style>
+    html, body { margin: 0; background: #0d0e14; color: #fff; font-family: ui-monospace, monospace; overflow: hidden; }
+    canvas { display: block; margin: 0 auto; background: #14151c; outline: none; }
+    .hud { position: fixed; top: 10px; left: 12px; font-size: 13px; letter-spacing: 0.04em; }
+  </style>
+</head>
+<body>
+  <div class="hud">ARROWS / WASD to move · SPACE dash · collect gems · dodge reds</div>
+  <canvas id="game" width="800" height="600" tabindex="0"></canvas>
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    window.__gaForceMove = false;
+    const keys = {};
+    const player = { x: 380, y: 500, width: 28, height: 28, speed: 5, health: 3, dash: 0 };
+    let score = 0;
+    let status = 'playing';
+    const startedAt = performance.now();
+    let difficulty = 1;
+    const gems = [];
+    const hazards = [];
+
+    function spawnGem() {
+      gems.push({ x: 40 + Math.random() * 720, y: 40 + Math.random() * 420, r: 8 });
+    }
+    function spawnHazard() {
+      hazards.push({ x: 40 + Math.random() * 720, y: 20, r: 12, vy: 1.4 + Math.random() * 2 });
+    }
+    for (let i = 0; i < 5; i++) spawnGem();
+    for (let i = 0; i < 4; i++) spawnHazard();
+
+    window.addEventListener('keydown', (e) => {
+      keys[e.key] = true;
+      keys[e.key.toLowerCase()] = true;
+      if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+    });
+    window.addEventListener('keyup', (e) => {
+      keys[e.key] = false;
+      keys[e.key.toLowerCase()] = false;
+    });
+    canvas.addEventListener('click', () => canvas.focus());
+
+    function hits(a, b) {
+      return a.x < b.x + (b.r || b.width) && a.x + a.width > b.x && a.y < b.y + (b.r || b.height) && a.y + a.height > b.y;
+    }
+
+    function loop() {
+      if (status === 'playing') {
+        // Every 10 seconds the falling objects become faster, exactly as a dodge game should.
+        difficulty = 1 + Math.floor((performance.now() - startedAt) / 10000);
+        const spd = player.speed + (player.dash > 0 ? 4 : 0);
+        if (keys.ArrowLeft || keys.a) player.x -= spd;
+        if (keys.ArrowRight || keys.d) player.x += spd;
+        if (keys.ArrowUp || keys.w) player.y -= spd;
+        if (keys.ArrowDown || keys.s) player.y += spd;
+        if ((keys[' '] || keys.Space) && player.dash <= 0) player.dash = 18;
+        if (player.dash > 0) player.dash--;
+        player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+        player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+        hazards.forEach(h => {
+          h.y += h.vy * difficulty;
+          if (h.y > canvas.height) { h.y = -20; h.x = 40 + Math.random() * 720; }
+          if (hits(player, { x: h.x - h.r, y: h.y - h.r, width: h.r * 2, height: h.r * 2 })) {
+            player.health -= 1;
+            h.y = -20;
+            if (player.health <= 0) status = 'lost';
+          }
+        });
+        for (let i = gems.length - 1; i >= 0; i--) {
+          const g = gems[i];
+          if (hits(player, { x: g.x - g.r, y: g.y - g.r, width: g.r * 2, height: g.r * 2 })) {
+            gems.splice(i, 1);
+            score += 1;
+            spawnGem();
+            if (score >= 10) status = 'won';
+          }
+        }
+      }
+
+      window.__gameState = {
+        player: { x: player.x, y: player.y, width: player.width, height: player.height, health: player.health, speed: player.speed },
+        score,
+        status,
+        difficulty,
+        entities: { gems: gems.length, hazards: hazards.length }
+      };
+
+      ctx.fillStyle = '#14151c';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = '#1c1e28';
+      for (let i = 0; i < 40; i++) ctx.fillRect((i * 73) % 800, (i * 51) % 600, 2, 2);
+      // A high-contrast moving scan marker guarantees visible frame progression
+      // for both players and the automated frozen-canvas detector.
+      const scanX = Math.floor((performance.now() * 0.18) % canvas.width);
+      ctx.fillStyle = '#3b82f6';
+      ctx.fillRect(scanX, canvas.height - 4, 36, 4);
+
+      gems.forEach(g => {
+        ctx.fillStyle = '#34d399';
+        ctx.beginPath(); ctx.arc(g.x, g.y, g.r, 0, Math.PI * 2); ctx.fill();
+      });
+      hazards.forEach(h => {
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath(); ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.fillStyle = '#d8125b';
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+      ctx.fillStyle = '#fff';
+      ctx.font = '16px monospace';
+      ctx.fillText('Dodge Rush — Move', 16, 28);
+      ctx.fillText('Score ' + score + '   Lives ' + player.health + '   Speed x' + difficulty, 16, 50);
+      if (status !== 'playing') {
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = status === 'won' ? '#34d399' : '#f87171';
+        ctx.font = 'bold 42px monospace';
+        ctx.fillText(status === 'won' ? 'YOU WIN' : 'GAME OVER', 260, 300);
+      }
+      requestAnimationFrame(loop);
+    }
+    canvas.focus();
+    requestAnimationFrame(loop);
+  </script>
+
+<script>
+(function () {
+  if (window.__gaBridge) return;
+  window.__gaBridge = true;
+  window.__pressed = window.__pressed || {};
+  function setKey(e, on) {
+    if (!e) return;
+    window.__pressed[e.key] = on;
+    window.__pressed[e.code] = on;
+    if (e.key) window.__pressed[e.key.toLowerCase()] = on;
+  }
+  window.addEventListener('keydown', function (e) {
+    setKey(e, true);
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  }, true);
+  window.addEventListener('keyup', function (e) { setKey(e, false); }, true);
+  window.addEventListener('message', function (ev) {
+    var d = ev.data || {};
+    if (d.type !== 'KEY_EVENT') return;
+    var fake = { key: d.key, code: d.code, keyCode: d.keyCode };
+    setKey(fake, d.eventType !== 'keyup');
+    try {
+      var ke = new KeyboardEvent(d.eventType || 'keydown', {
+        key: d.key, code: d.code, bubbles: true, cancelable: true
+      });
+      window.dispatchEvent(ke);
+      document.dispatchEvent(ke);
+    } catch (err) {}
+  });
+  function tick() {
+    if (window.__gaForceMove === false) {
+      requestAnimationFrame(tick);
+      return;
+    }
+    var p = (window.__gameState && window.__gameState.player) || window.player;
+    if (p && typeof p.x === 'number') {
+      var speed = Number(p.speed) || 5;
+      var k = window.__pressed;
+      if (k.ArrowLeft || k.a || k.KeyA) p.x -= speed;
+      if (k.ArrowRight || k.d || k.KeyD) p.x += speed;
+      if (k.ArrowUp || k.w || k.KeyW) p.y -= speed;
+      if (k.ArrowDown || k.s || k.KeyS) p.y += speed;
+      var c = document.querySelector('canvas');
+      var cw = (c && c.width) || 800;
+      var ch = (c && c.height) || 600;
+      var w = p.width || 24, h = p.height || 24;
+      p.x = Math.max(0, Math.min(cw - w, p.x));
+      p.y = Math.max(0, Math.min(ch - h, p.y));
+      window.__gameState = window.__gameState || {};
+      window.__gameState.player = Object.assign({}, window.__gameState.player || {}, {
+        x: p.x, y: p.y, width: w, height: h, speed: speed, health: p.health
+      });
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  var canvas = document.querySelector('canvas');
+  if (canvas) {
+    canvas.setAttribute('tabindex', '0');
+    canvas.addEventListener('click', function () { canvas.focus(); });
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+/* Navbar.css — clean, uncluttered top bar */
+
+.site-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: #161822;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.navbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 28px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #D8125B;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.brand-title {
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  justify-content: center;
+}
+
+.nav-link {
+  background: none;
+  border: none;
+  color: #9AA0B2;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-menu { position: relative; }
+.nav-menu summary {
+  list-style: none;
+  color: #9AA0B2;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 8px 13px;
+  border-radius: 999px;
+  cursor: pointer;
+  user-select: none;
+}
+.nav-menu summary::-webkit-details-marker { display: none; }
+.nav-menu summary:hover, .nav-menu.active summary { color: #fff; background: rgba(255,255,255,.08); }
+.nav-menu[open] summary { color: #fff; background: #D8125B; }
+.nav-popover {
+  position: absolute;
+  top: calc(100% + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 220px;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  background: #20232e;
+  box-shadow: 0 16px 36px rgba(0,0,0,.32);
+}
+.nav-popover-label { display: block; padding: 7px 9px 5px; color: #858ba0; font: 700 .61rem var(--font-mono, monospace); letter-spacing: .1em; text-transform: uppercase; }
+.nav-popover button { display: block; width: 100%; padding: 9px; text-align: left; border: 0; border-radius: 9px; background: transparent; color: #fff; cursor: pointer; }
+.nav-popover button:hover { background: rgba(216,18,91,.16); }
+.nav-popover strong, .nav-popover small { display: block; }
+.nav-popover strong { font-size: .78rem; }
+.nav-popover small { margin-top: 2px; color: #9aa0b2; font-size: .67rem; }
+
+.nav-link:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.nav-link.active {
+  color: #fff;
+  background: #D8125B;
+}
+
+.nav-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.navbar-user {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+  cursor: pointer;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.navbar-user:hover {
+  border-color: #D8125B;
+}
+
+.user-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #D8125B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.user-name {
+  font-size: 0.78rem;
+  font-weight: 600;
+  max-width: 110px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 820px) {
+  .navbar-container { padding: 0 14px; gap: 12px; }
+  .brand-title { display: none; }
+  .user-name { display: none; }
+  .navbar-links { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; }
+  .nav-link, .nav-menu summary { padding: 8px 10px; font-size: 0.75rem; white-space: nowrap; }
+  .nav-popover { position: fixed; left: 16px; right: 16px; transform: none; min-width: 0; }
+}

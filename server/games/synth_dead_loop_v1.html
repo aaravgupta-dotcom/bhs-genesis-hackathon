@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body>
+<canvas id="c" width="800" height="600"></canvas>
+<script>
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  window.__gameState = { player: { x: 100, y: 100 }, score: 0, status: 'playing', entities: [] };
+  // Draw once, then never update or call requestAnimationFrame
+  ctx.fillStyle = '#ff0000';
+  ctx.fillRect(50, 50, 100, 100);
+  // BUG: Dead render loop — rAF is never called
+</script>
+</body>
+</html>

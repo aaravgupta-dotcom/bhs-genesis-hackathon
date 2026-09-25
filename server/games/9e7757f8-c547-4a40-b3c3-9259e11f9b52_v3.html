@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Neon Triangle Dash</title>
+<style>
+body{margin:0;background:#111;color:#fff;font-family:sans-serif;overflow:hidden}
+#gameCanvas{display:block;background:#000}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+/* -------------------------------------------------
+   Core game data
+------------------------------------------------- */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
+
+const keys = {};
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  keys[e.key] = true;
+  keys[e.key.toLowerCase()] = true;
+});
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+  keys[e.key.toLowerCase()] = false;
+});
+canvas.addEventListener('click', () => window.focus());
+
+let player = {x:380, y:500, w:30, h:30, health:100, speed:200, dashTimer:0};
+let score = 0;
+let status = 'playing';
+let entities = [];
+let spawnTimer = 0;
+
+/* expose a mutable snapshot for external tests */
+window.__gameState = {player: null, score: 0, status: 'playing', entities: []};
+
+/* -------------------------------------------------
+   Helpers
+------------------------------------------------- */
+function reset() {
+  player = {x:380, y:500, w:30, h:30, health:100, speed:200, dashTimer:0};
+  score = 0;
+  status = 'playing';
+  entities = [];
+  spawnTimer = 0;
+}
+function checkAABB(a, b) {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+}
+
+/* -------------------------------------------------
+   Game logic
+------------------------------------------------- */
+function update(dt) {
+  // movement
+  let sp = player.speed;
+  if (keys[' '] && player.dashTimer <= 0) {
+    player.dashTimer = 0.3;
+    sp *= 2.5;
+  }
+  if (player.dashTimer > 0) player.dashTimer -= dt;
+
+  if (keys['ArrowLeft'])  player.x -= sp * dt;
+  if (keys['ArrowRight']) player.x += sp * dt;
+  if (keys['ArrowUp'])    player.y -= sp * dt;
+  if (keys['ArrowDown'])  player.y += sp * dt;
+
+  // keep inside canvas
+  player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+  player.y = Math.max(0, Math.min(canvas.height - player.h, player.y));
+
+  // spawn barriers & power‑ups
+  spawnTimer += dt;
+  if (spawnTimer > 0.6) {
+    spawnTimer = 0;
+
+    // barriers
+    if (entities.filter(e => e.type === 'barrier').length < 30) {
+      entities.push({
+        type: 'barrier',
+        x: Math.random() * (canvas.width - 40),
+        y: -40,
+        w: 40,
+        h: 10,
+        vy: 150 + Math.random() * 100,
+        color: '#0ff'
+      });
+    }
+
+    // power‑ups (20% chance)
+    if (Math.random() < 0.2 && entities.filter(e => e.type === 'power').length < 5) {
+      entities.push({
+        type: 'power',
+        x: Math.random() * (canvas.width - 30),
+        y: -30,
+        w: 30,
+        h: 30,
+        vy: 100 + Math.random() * 80,
+        color: '#ff0'
+      });
+    }
+  }
+
+  // move entities
+  for (let i = entities.length - 1; i >= 0; i--) {
+    const e = entities[i];
+    e.y += e.vy * dt;
+
+    // collision with player
+    if (checkAABB(player, e)) {
+      if (e.type === 'barrier') {
+        player.health -= 20;
+        if (player.health <= 0) status = 'gameover';
+      } else if (e.type === 'power') {
+        player.health = Math.min(100, player.health + 30);
+        score += 10;
+      }
+      entities.splice(i, 1);
+      continue;
+    }
+
+    // remove off‑screen
+    if (e.y > canvas.height) entities.splice(i, 1);
+  }

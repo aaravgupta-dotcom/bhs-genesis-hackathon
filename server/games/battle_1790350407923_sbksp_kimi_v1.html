@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Arena Showdown</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 800;
+        canvas.height = 600;
+        let lastTime = performance.now();
+        let player = {
+            x: 100,
+            y: 300,
+            width: 50,
+            height: 50,
+            health: 100,
+            speed: 5,
+            vy: 0
+        };
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+        let keys = {};
+
+        window.__gameState = {
+            player: {
+                x: player.x,
+                y: player.y,
+                width: player.width,
+                height: player.height,
+                health: player.health,
+                speed: player.speed
+            },
+            score: score,
+            status: status,
+            entities: entities
+        };
+
+        canvas.addEventListener('click', () => window.focus());
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+        });
+
+        function update(dt) {
+            if (status === 'playing') {
+                if (keys['ArrowLeft'] || keys['a']) {
+                    player.x -= player.speed * dt;
+                }
+                if (keys['ArrowRight'] || keys['d']) {
+                    player.x += player.speed * dt;
+                }
+                if (keys['ArrowUp'] || keys['w']) {
+                    player.vy = -10;
+                }
+                if (keys['ArrowDown'] || keys['s']) {
+                    player.vy = 10;
+                }
+                if (keys['Space']) {
+                    player.vy = -20;
+                }
+
+                player.y += player.vy * dt;
+                player.vy *= 0.9;
+
+                player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+                player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+                spawnTimer += dt;
+                if (spawnTimer > 0.8) {
+                    spawnTimer = 0;
+                    if (entities.length < 30) {
+                        entities.push({
+                            x: Math.random() * (canvas.width - 24),
+                            y: -30,
+                            width: 24,
+                            height: 24,
+                            vy: 120 + Math.random() * 100,
+                            color: '#D8125B'
+                        });
+                    }
+                }
+
+                for (let i = entities.length - 1; i >= 0; i--) {
+                    const e = entities[i];
+                    e.y += e.vy * dt;
+                    if (checkAABB(player, e)) {
+                        player.health -= 25;
+                        entities.splice(i, 1);
+                        if (player.health <= 0) {
+                            status = 'lost';
+                        }
+                    } else if (e.y > canvas.height + 50) {
+                        entities.splice(i, 1);
+                    }
+                }
+
+                if (player.health > 0) {
+                    score += 1;
+                    if (score % 10 === 0) {
+                        player.speed += 0.5;
+                    }
+                }
+            }
+        }
+
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Score: ${score}`, 10, 10);
+            ctx.fillText(`Health: ${player.health}`, 10, 40);
+
+            if (status === 'playing') {
+                ctx.fillStyle = 'white';
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+                for (const e of entities) {
+                    ctx.fillStyle = e.color;
+                    ctx.fillRect(e.x, e.y, e.width, e.height);
+                }
+            } else if (status === 'lost') {
+                ctx.fillStyle = 'white';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2);
+                ctx.font = '24px Arial';
+                ctx.fillText('Press Space to restart', canvas.width / 2, canvas.height / 2 + 50);
+            } else if (status === 'won') {
+                ctx.fillStyle = 'white';
+                ctx.font = '48px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('You Won!', canvas.width / 2, canvas.height / 2);
+                ctx.font = '24px Arial';
+                ctx.fillText('Press Space to restart', canvas.width / 2, canvas.height / 2 + 50);
+            }
+
+            window.__gameState = {
+                player: {
+                    x: player.x,
+                    y: player.y,
+                    width: player.width,
+                    height: player.height,
+                    health: player.health,
+                    speed: player.speed
+                },
+                score: score,
+                status: status,
+                entities: entities
+            };
+        }
+
+        function checkAABB(a, b) {
+            return !(a.x + a.width < b.x || a.x > b.x + b.width || a.y + a.height < b.y || a.y > b.y + b.height);
+        }
+
+        let spawnTimer = 0;
+
+        function gameLoop(now) {
+            const dt = Math.min((now - lastTime) / 1000, 0.1);
+            lastTime = now;
+            update(dt);
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>

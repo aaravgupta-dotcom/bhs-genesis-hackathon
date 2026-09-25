@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coin Collector</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #canvas {
+            border: 1px solid black;
+        }
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <div class="game-over"></div>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const keys = {};
+
+        let player = {
+            x: 400,
+            y: 300,
+            width: 50,
+            height: 50,
+            health: 100,
+            speed: 5
+        };
+
+        let score = 0;
+        let status = 'playing';
+        let entities = [
+            {
+                type: 'player',
+                x: player.x,
+                y: player.y,
+                width: player.width,
+                height: player.height
+            },
+            {
+                type: 'coin',
+                x: 700,
+                y: 200,
+                width: 20,
+                height: 20
+            },
+            {
+                type: 'wall',
+                x: 0,
+                y: 0,
+                width: 800,
+                height: 20
+            },
+            {
+                type: 'wall',
+                x: 0,
+                y: 580,
+                width: 800,
+                height: 20
+            }
+        ];
+
+        let won = false;
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            keys[e.key.toLowerCase()] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        function update() {
+            if (keys.ArrowLeft || keys.a) player.x -= player.speed;
+            if (keys.ArrowRight || keys.d) player.x += player.speed;
+            if (keys.ArrowUp || keys.w) player.y -= player.speed;
+            if (keys.ArrowDown || keys.s) player.y += player.speed;
+
+            if (player.x < 0) player.x = 0;
+            if (player.x > canvas.width - player.width) player.x = canvas.width - player.width;
+            if (player.y < 0) player.y = 0;
+            if (player.y > canvas.height - player.height) player.y = canvas.height - player.height;
+
+            for (let i = 0; i < entities.length; i++) {
+                if (entities[i].type === 'coin' && checkCollision(player, entities[i])) {
+                    score++;
+                    entities.splice(i, 1);
+                    i--;
+                }
+                if (entities[i].type === 'wall' && checkCollision(player, entities[i])) {
+                    status = 'lost';
+                }
+            }
+
+            if (entities.length === 0) {
+                status = 'won';
+                won = true;
+            }
+
+            window.__gameState = {
+                player: {
+                    x: player.x,
+                    y: player.y,
+                    width: player.width,
+                    height: player.height,
+                    health: player.health,
+                    speed: player.speed
+                },
+                score: score,
+                status: status,
+                entities: entities
+            };
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < entities.length; i++) {
+                if (entities[i].type === 'player') {
+                    ctx.fillStyle = 'blue';
+                    ctx.fillRect(entities[i].x, entities[i].y, entities[i].width, entities[i].height);
+                } else if (entities[i].type === 'coin') {
+                    ctx.fillStyle = 'gold';
+                    ctx.fillRect(entities[i].x, entities[i].y, entities[i].width, entities[i].height);
+                } else if (entities[i].type === 'wall') {
+                    ctx.fillStyle = 'gray';
+                    ctx.fillRect(entities[i].x, entities[i].y, entities[i].width, entities[i].height);
+                }
+            }
+
+            ctx.font = '24px Arial';
+            ctx.fillStyle = 'white';
+            ctx.textAlign = 'left';
+            ctx.textBaseline = 'top';
+            ctx.fillText(`Score: ${score}`, 10, 10);
+            ctx.fillText(`Health: ${player.health}`, 10, 40);
+            ctx.fillText(`Status: ${status}`, 10, 70);
+
+            if (won) {
+                ctx.font = '48px Arial';
+                ctx.fillStyle = 'green';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Congratulations! You won!', canvas.width / 2, canvas.height / 2);
+            } else if (status === 'lost') {
+                ctx.font = '48px Arial';
+                ctx.fillStyle = 'red';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('Game Over! You lost.', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        function checkCollision(a, b) {
+            if (a.x + a.width > b.x && a.x < b.x + b.width && a.y + a.height > b.y && a.y < b.y + b.height) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>

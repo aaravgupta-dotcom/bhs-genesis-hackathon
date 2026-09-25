@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environments & Sensitive Credentials (NEVER COMMIT)
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Builds & Outputs
+dist/
+build/
+.playwright/
+server/screenshots/
+*.log
+
+# Databases & Runtime state
+server/data/
+*.sqlite
+*.sqlite3
+*.db
+*.db-*
+
+# Operating System Files
+.DS_Store
+Thumbs.db

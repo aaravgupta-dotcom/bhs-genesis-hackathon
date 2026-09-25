@@ -1,0 +1,155 @@
+/* SettingsModal.css */
+
+.settings-modal {
+  max-width: 540px;
+}
+
+.settings-header-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.settings-icon {
+  font-size: 1.2rem;
+  color: var(--fuchsia);
+}
+
+.modal-close-btn {
+  color: #FFFFFF;
+  font-size: 1rem;
+  padding: 4px 8px;
+}
+
+.settings-body {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.settings-section-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.settings-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: -4px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label-badge {
+  background: var(--fuchsia-light);
+  color: var(--fuchsia-text);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+}
+
+.form-input, .form-select {
+  padding: 10px 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: var(--fuchsia);
+  box-shadow: 0 0 0 3px var(--fuchsia-light);
+}
+
+.token-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.token-code {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.retries-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.chip-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-card);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.chip-btn:hover {
+  background: var(--bg-subtle);
+  color: var(--text-primary);
+}
+
+.chip-btn.active {
+  background: var(--fuchsia-light);
+  border-color: var(--fuchsia);
+  color: var(--fuchsia-text);
+  font-weight: 700;
+}

@@ -1,0 +1,811 @@
+/* EditorialSpread.css — High-Fashion Print Magazine Aesthetic (Vogue, Cosmopolitan, GQ, Esquire) */
+
+.editorial-magazine-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 30px 40px;
+  border-radius: 4px;
+  transition: background-color 0.3s ease, color 0.3s ease;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Paper Stock Themes ── */
+.editorial-magazine-container.theme-ivory {
+  background-color: #FDFCFA;
+  color: #1A1C23;
+  border: 1px solid #E5E3DC;
+}
+
+.editorial-magazine-container.theme-carbon {
+  background-color: #0E0F14;
+  color: #F4F4F8;
+  border: 1px solid #232530;
+}
+
+/* ── Running Folio / Dateline ── */
+.editorial-running-folio {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  padding-bottom: 14px;
+  border-bottom: 1px solid currentColor;
+  opacity: 0.85;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.folio-left, .folio-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.divider {
+  opacity: 0.4;
+}
+
+.theme-toggle-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.toggle-label {
+  font-size: 0.6rem;
+  opacity: 0.6;
+}
+
+.stock-btn {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: inherit;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.58rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0.5;
+  transition: all 0.15s ease;
+}
+
+.stock-btn.active,
+.stock-btn:hover {
+  opacity: 1;
+  background: #D8125B;
+  border-color: #D8125B;
+  color: #FFF !important;
+}
+
+/* ── Masthead ── */
+.editorial-masthead {
+  padding: 30px 0 20px 0;
+  text-align: center;
+}
+
+.masthead-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.eyebrow-rule {
+  height: 1px;
+  background: currentColor;
+  opacity: 0.3;
+  flex: 1;
+  max-width: 140px;
+}
+
+.eyebrow-text {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.22em;
+  font-weight: 700;
+  opacity: 0.75;
+}
+
+.masthead-title {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', 'Playfair Display', serif);
+  font-size: clamp(4rem, 10vw, 8.5rem);
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  line-height: 0.95;
+  text-transform: uppercase;
+  margin: 10px 0;
+  color: inherit;
+}
+
+.theme-carbon .masthead-title {
+  text-shadow: 0 0 40px rgba(216, 18, 91, 0.3);
+}
+
+.masthead-tagline-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  opacity: 0.85;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.double-rule {
+  height: 6px;
+  border-top: 1px solid currentColor;
+  border-bottom: 3px double currentColor;
+  margin: 24px 0 32px 0;
+  opacity: 0.8;
+}
+
+/* ── Cover Story Spread ── */
+.editorial-cover-story {
+  margin-bottom: 40px;
+}
+
+.cover-grid {
+  display: grid;
+  grid-template-columns: 1.25fr 1fr;
+  gap: 40px;
+  align-items: start;
+}
+
+@media (max-width: 960px) {
+  .cover-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cover-hero-visual {
+  position: relative;
+}
+
+.visual-frame {
+  position: relative;
+  background: #14151C;
+  color: #FFF;
+  border: 1px solid #2C2E39;
+  padding: 50px 40px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  background-image: 
+    radial-gradient(circle at 80% 20%, rgba(216, 18, 91, 0.4) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(20, 21, 28, 0.3) 0%, rgba(10, 10, 15, 0.95) 100%);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.frame-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #D8125B;
+  pointer-events: none;
+}
+
+.frame-corner.top-left { top: 12px; left: 12px; border-right: none; border-bottom: none; }
+.frame-corner.top-right { top: 12px; right: 12px; border-left: none; border-bottom: none; }
+.frame-corner.bottom-left { bottom: 12px; left: 12px; border-right: none; border-top: none; }
+.frame-corner.bottom-right { bottom: 12px; right: 12px; border-left: none; border-top: none; }
+
+.visual-overlay-content {
+  position: relative;
+  z-index: 2;
+}
+
+.cover-kicker {
+  display: inline-block;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: #D8125B;
+  font-weight: 800;
+  margin-bottom: 14px;
+}
+
+.cover-display-headline {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', 'Playfair Display', serif);
+  font-size: clamp(2.4rem, 4.5vw, 3.8rem);
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  color: #FFFFFF;
+}
+
+.cover-display-headline em {
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-weight: 400;
+  color: #FF2E7E;
+  text-transform: none;
+}
+
+.cover-display-sub {
+  font-family: var(--font-editorial-sans, 'Inter', sans-serif);
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #C5C8D4;
+  max-width: 500px;
+  margin-bottom: 24px;
+}
+
+.cover-cta-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.editorial-cta-primary {
+  background: #D8125B;
+  color: #FFFFFF;
+  border: 1px solid #FF2E7E;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(216, 18, 91, 0.4);
+}
+
+.editorial-cta-primary:hover {
+  background: #B80E4C;
+  transform: translateY(-2px);
+}
+
+.editorial-cta-outline {
+  background: transparent;
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 12px 20px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.editorial-cta-outline:hover {
+  border-color: #D8125B;
+  color: #D8125B;
+  background: rgba(216, 18, 91, 0.1);
+}
+
+.photo-credit {
+  margin-top: 8px;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+/* ── Article Column ── */
+.cover-article-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  border-left: 1px solid currentColor;
+  padding-left: 36px;
+}
+
+@media (max-width: 960px) {
+  .cover-article-column {
+    border-left: none;
+    padding-left: 0;
+    border-top: 1px solid currentColor;
+    padding-top: 30px;
+  }
+}
+
+.column-header {
+  margin-bottom: 20px;
+}
+
+.kicker-tag {
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  color: #D8125B;
+  font-weight: 800;
+}
+
+.column-title {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', serif);
+  font-size: 2rem;
+  font-weight: 800;
+  margin-top: 6px;
+  line-height: 1.15;
+}
+
+.editorial-text-body {
+  font-family: var(--font-editorial-body, 'Cormorant Garamond', Georgia, serif);
+  font-size: 1.15rem;
+  line-height: 1.7;
+}
+
+.lead-paragraph {
+  font-size: 1.25rem;
+  line-height: 1.65;
+  margin-bottom: 18px;
+}
+
+.drop-cap {
+  float: left;
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', serif);
+  font-size: 4.2rem;
+  line-height: 0.75;
+  font-weight: 900;
+  color: #D8125B;
+  padding: 6px 12px 2px 0;
+}
+
+/* Pull Quote */
+.editorial-pull-quote {
+  margin: 28px 0;
+  padding: 20px 24px;
+  border-top: 2px solid #D8125B;
+  border-bottom: 1px solid currentColor;
+  position: relative;
+  background: rgba(216, 18, 91, 0.03);
+}
+
+.quote-mark {
+  font-family: 'Bodoni Moda', serif;
+  font-size: 4rem;
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  color: #D8125B;
+  opacity: 0.25;
+  line-height: 1;
+}
+
+.editorial-pull-quote p {
+  font-family: var(--font-editorial-headline, 'Playfair Display', serif);
+  font-style: italic;
+  font-size: 1.35rem;
+  line-height: 1.45;
+  color: inherit;
+  margin-bottom: 8px;
+}
+
+.quote-cite {
+  display: block;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  opacity: 0.7;
+  color: #D8125B;
+}
+
+.article-signature {
+  margin-top: 30px;
+  padding-top: 14px;
+  border-top: 1px solid currentColor;
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  letter-spacing: 0.16em;
+  opacity: 0.7;
+}
+
+/* ── Section Header ── */
+.section-header-editorial {
+  text-align: center;
+  max-width: 800px;
+  margin: 0 auto 36px auto;
+}
+
+.section-number {
+  font-size: 0.65rem;
+  letter-spacing: 0.2em;
+  color: #D8125B;
+  font-weight: 800;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.section-heading-serif {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', serif);
+  font-size: clamp(2rem, 3.5vw, 3rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+
+.section-sub-editorial {
+  font-family: var(--font-editorial-body, Georgia, serif);
+  font-size: 1.1rem;
+  opacity: 0.8;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* ── Arena Duel Profile Spread (GQ/Esquire) ── */
+.duel-profile-spread {
+  display: grid;
+  grid-template-columns: 1fr 140px 1fr;
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 900px) {
+  .duel-profile-spread {
+    grid-template-columns: 1fr;
+  }
+}
+
+.challenger-profile-card {
+  padding: 30px;
+  border: 1px solid currentColor;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 2px;
+}
+
+.theme-carbon .challenger-profile-card {
+  background: #14151C;
+  border-color: #2C2E39;
+}
+
+.profile-badge-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.model-chip {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #D8125B;
+}
+
+.badge-haute {
+  font-family: var(--font-mono, monospace);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding: 2px 6px;
+  border: 1px solid currentColor;
+  opacity: 0.7;
+}
+
+.challenger-name {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', serif);
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.challenger-bio {
+  font-family: var(--font-editorial-sans, sans-serif);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  opacity: 0.85;
+  margin-bottom: 24px;
+}
+
+.stat-editorial-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid currentColor;
+}
+
+.stat-block {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-k {
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  opacity: 0.6;
+}
+
+.stat-v {
+  font-size: 0.88rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.duel-monogram-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.vs-monogram {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', serif);
+  font-size: 3rem;
+  font-weight: 900;
+  font-style: italic;
+  color: #D8125B;
+  line-height: 1;
+}
+
+.duel-rule-vertical {
+  width: 1px;
+  height: 50px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+.btn-editorial-duel {
+  background: #1A1C23;
+  color: #FFF;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 10px 14px;
+  border: 1px solid #D8125B;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.btn-editorial-duel:hover {
+  background: #D8125B;
+  color: #FFF;
+}
+
+/* ── Physical Artefacts Exhibition ── */
+.gallery-dual-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 900px) {
+  .gallery-dual-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.editorial-artefact-card {
+  border: 1px solid currentColor;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: rgba(0, 0, 0, 0.015);
+}
+
+.theme-carbon .editorial-artefact-card {
+  background: #14151C;
+  border-color: #2C2E39;
+}
+
+.artefact-header {
+  margin-bottom: 20px;
+}
+
+.artefact-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  color: #D8125B;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.artefact-title {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', serif);
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.artefact-desc {
+  font-family: var(--font-editorial-body, Georgia, serif);
+  font-size: 1.05rem;
+  line-height: 1.5;
+  opacity: 0.8;
+}
+
+.artefact-stage {
+  margin: 16px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.editorial-mini-chip {
+  padding: 3px 8px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: #1C1E26;
+  color: #8E92A2;
+  border: 1px solid #3E4251;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.editorial-mini-chip.active {
+  background: #D8125B;
+  color: #FFF;
+  border-color: #D8125B;
+}
+
+.artefact-caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  padding-top: 12px;
+  border-top: 1px solid currentColor;
+  opacity: 0.8;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.artefact-link-btn {
+  background: transparent;
+  border: none;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #D8125B;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* ── Lookbook Grid ── */
+.lookbook-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 900px) {
+  .lookbook-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lookbook-card {
+  border: 1px solid currentColor;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.2s ease;
+  background: rgba(0, 0, 0, 0.01);
+}
+
+.lookbook-card:hover {
+  transform: translateY(-4px);
+  border-color: #D8125B;
+  box-shadow: 0 10px 24px rgba(216, 18, 91, 0.15);
+}
+
+.lookbook-card-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.65rem;
+  letter-spacing: 0.15em;
+  color: #D8125B;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.lookbook-title {
+  font-family: var(--font-editorial-headline, 'Bodoni Moda', serif);
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+
+.lookbook-desc {
+  font-family: var(--font-editorial-sans, sans-serif);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  opacity: 0.8;
+  margin-bottom: 20px;
+}
+
+.editorial-btn-launch {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  color: inherit;
+  border: 1px solid currentColor;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.lookbook-card:hover .editorial-btn-launch {
+  background: #D8125B;
+  border-color: #D8125B;
+  color: #FFF;
+}
+
+/* ── Footer / Colophon ── */
+.editorial-footer {
+  margin-top: 30px;
+}
+
+.footer-top-rule {
+  height: 1px;
+  background: currentColor;
+  margin-bottom: 24px;
+}
+
+.colophon-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 180px;
+  gap: 24px;
+  font-size: 0.65rem;
+  letter-spacing: 0.08em;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .colophon-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.colophon-head {
+  font-weight: 800;
+  color: #D8125B;
+  display: block;
+  margin-bottom: 6px;
+  letter-spacing: 0.15em;
+}
+
+.barcode-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.editorial-barcode {
+  font-family: monospace;
+  font-size: 1.4rem;
+  letter-spacing: 0.15em;
+  line-height: 1;
+}
+
+.barcode-number {
+  font-size: 0.55rem;
+  opacity: 0.6;
+  margin-top: 4px;
+}
+
+.footer-copyright {
+  text-align: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.65rem;
+  letter-spacing: 0.18em;
+  opacity: 0.6;
+  padding-top: 14px;
+  border-top: 1px solid currentColor;
+}

@@ -1,0 +1,240 @@
+/* VirtualController.css */
+
+.virtual-controller-wrap {
+  width: 100%;
+  background: #1C1E26;
+  border-top: 1px solid #2C2E39;
+  user-select: none;
+  transition: all 0.2s ease-in-out;
+}
+
+.controller-toggle-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: #232530;
+  border-bottom: 1px solid #2C2E39;
+}
+
+.btn-controller-toggle {
+  background: transparent;
+  border: 1px solid #3E4251;
+  color: #C5C8D4;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-controller-toggle:hover {
+  background: #2C2E39;
+  color: #FFF;
+  border-color: #D8125B;
+}
+
+.btn-scanline-toggle {
+  background: transparent;
+  border: 1px solid #3E4251;
+  color: #9EA3B0;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-scanline-toggle.active {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: #22C55E;
+  color: #22C55E;
+}
+
+.controller-body {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+/* ── D-Pad ── */
+.dpad-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dpad-middle-row {
+  display: flex;
+  align-items: center;
+}
+
+.dpad-center {
+  width: 32px;
+  height: 32px;
+  background: #14151C;
+}
+
+.dpad-btn {
+  width: 34px;
+  height: 34px;
+  background: #2C2E39;
+  color: #C5C8D4;
+  border: 1px solid #3E4251;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.08s ease;
+}
+
+.dpad-up { border-radius: 6px 6px 0 0; }
+.dpad-down { border-radius: 0 0 6px 6px; }
+.dpad-left { border-radius: 6px 0 0 6px; }
+.dpad-right { border-radius: 0 6px 6px 0; }
+
+.dpad-btn:hover {
+  background: #383B4A;
+  color: #FFF;
+}
+
+.dpad-btn.pressed,
+.dpad-btn:active {
+  background: #D8125B;
+  color: #FFF;
+  border-color: #D8125B;
+  transform: scale(0.95);
+  box-shadow: 0 0 10px rgba(216, 18, 91, 0.4);
+}
+
+/* ── Key Binding HUD ── */
+.key-binding-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.hud-title {
+  font-size: 0.62rem;
+  color: #8E92A2;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.hud-keys-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  height: 24px;
+  padding: 0 6px;
+  background: #14151C;
+  border: 1px solid #3E4251;
+  border-radius: 4px;
+  color: #8E92A2;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.68rem;
+  font-weight: 700;
+  transition: all 0.1s ease;
+}
+
+.hud-key.space-key {
+  min-width: 58px;
+}
+
+.hud-key.lit {
+  background: #D8125B;
+  color: #FFF;
+  border-color: #D8125B;
+  box-shadow: 0 0 8px rgba(216, 18, 91, 0.5);
+  transform: translateY(1px);
+}
+
+.hud-hint {
+  font-size: 0.6rem;
+  color: #62677A;
+  font-family: var(--font-mono, monospace);
+}
+
+/* ── Action Buttons ── */
+.action-buttons-cluster {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.action-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #3E4251;
+  font-weight: 900;
+  font-size: 1rem;
+  cursor: pointer;
+  user-select: none;
+  touch-action: manipulation;
+  transition: all 0.08s ease;
+}
+
+.btn-action-a {
+  background: #D8125B;
+  color: #FFF;
+  border-color: #FF2E7E;
+  box-shadow: 0 4px 12px rgba(216, 18, 91, 0.3);
+}
+
+.btn-action-b {
+  background: #2C2E39;
+  color: #FFF;
+  border-color: #4A4E61;
+}
+
+.action-btn .sub-key {
+  font-size: 0.5rem;
+  font-family: var(--font-mono, monospace);
+  opacity: 0.8;
+  font-weight: 700;
+}
+
+.action-btn.pressed,
+.action-btn:active {
+  transform: scale(0.92);
+  filter: brightness(1.2);
+}
+
+/* CRT Scanlines Overlay */
+.crt-scanlines {
+  position: relative;
+}
+
+.crt-scanlines::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 10;
+  background-size: 100% 3px, 6px 100%;
+  pointer-events: none;
+}

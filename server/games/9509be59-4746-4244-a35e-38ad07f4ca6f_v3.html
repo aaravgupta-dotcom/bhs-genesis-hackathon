@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Void: Cyber Strike</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    background: #05060a;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background:
+      radial-gradient(1200px 800px at 50% -10%, #0d1424 0%, #05060a 60%),
+      #05060a;
+  }
+  #wrap {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 0 0 1px rgba(0,240,255,0.25),
+      0 0 40px rgba(0,240,255,0.18),
+      0 0 120px rgba(255,40,90,0.12),
+      inset 0 0 60px rgba(0,0,0,0.6);
+  }
+  canvas { display: block; background: #05060a; }
+  #wrap::after {
+    content: '';
+    position: absolute; inset: 0;
+    pointer-events: none;
+    background:
+      repeating-linear-gradient(0deg, rgba(0,0,0,0.16) 0 2px, transparent 2px 4px);
+    mix-blend-mode: multiply;
+    opacity: 0.5;
+  }
+  .corner {
+    position: absolute; width: 26px; height: 26px;
+    border: 2px solid rgba(0,240,255,0.6);
+    pointer-events: none;
+  }
+  .tl { top: 8px; left: 8px; border-right: none; border-bottom: none; }
+  .tr { top: 8px; right: 8px; border-left: none; border-bottom: none; }
+  .bl { bottom: 8px; left: 8px; border-right: none; border-top: none; }
+  .br { bottom: 8px; right: 8px; border-left: none; border-top: none; }
+</style>
+</head>
+<body>
+<div id="wrap">
+  <canvas id="gameCanvas"></canvas>
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+</div>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
+
+const keys = {};
+window.addEventListener('keydown', (e) => {
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  keys[e.key] = true; keys[e.key.toLowerCase()] = true;
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.key] = false; keys[e.key.toLowerCase()] = false;
+});
+canvas.addEventListener('click', () => window.focus());
+
+const player = { x: 380, y: 520, width: 34, height: 34, health: 100, speed: 260, invuln: 0 };
+let score = 0, status = 'playing', elapsed = 0, fireCooldown = 0, spawnTimer = 0, shake = 0;
+let bullets = [], enemies = [], lasers = [], particles = [];
+const WIN_TIME = 60, WIN_KILLS = 50;
+
+function checkAABB(a, b) {
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+function spawnEnemy() {
+  const x = 40 + Math.random() * (canvas.width - 80);
+  const y = -30;
+  const spd = 60 + Math.random() * 70 + elapsed * 1.5;
+  enemies.push({ x, y, width: 30, height: 30, vx: (Math.random() - 0.5) * 120, vy: spd, hp: 1, phase: Math.random() * 6.28 });
+}
+function spawnLaser() {
+  const horizontal = Math.random() < 0.5;
+  const len = 140 + Math.random() * 220;
+  const pos = 60 + Math.random() * (canvas.width - len - 60);
+  const life = 3.5 + Math.random() * 2;
+  const warn = 1.2;
+  if (horizontal) lasers.push({ x: pos, y: 60 + Math.random() * (canvas.height - 160), width: len, height: 10, life, warn, horiz: true });
+  else lasers.push({ x: 60 + Math.random() * (canvas.width - 160), y: pos, width: 10, height: len, life, warn, horiz: false });
+}
+function burst(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * 6.28, s = 40 + Math.random() * 200;
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.4 + Math.random() * 0.5, max: 0.9, color, size: 2 + Math.random() * 3 });
+  }
+}
+function fireBullet() {
+  if (fireCooldown <= 0) {
+    fireCooldown = 0.16;
+    bullets.push({ x: player.x + player.width / 2 - 3, y: player.y - 8, width: 6, height: 14, vy: -460, color: '#00f0ff' });
+  }
+}
+function update(dt) {
+  elapsed += dt;
+  score += 5 * dt;
+  if (fireCooldown > 0) fireCooldown -= dt;
+  if (player.invuln > 0) player.invuln -= dt;
+  if (shake > 0) shake -= dt;
+
+  let dx = 0, dy = 0;
+  if (keys['a'] || keys['arrowleft']) dx -= 1;
+  if (keys['d'] || keys['arrowright']) dx += 1;
+  if (keys['w'] || keys['arrowup']) dy -= 1;
+  if (keys['s'] || keys['arrowdown']) dy += 1;
+  if (dx && dy) { dx *= 0.7071; dy *= 0.7071; }
+  player.x += dx * player.speed * dt;
+  player.y += dy * player.speed * dt;
+  player.x = Math.max(0, Math.min(canvas.width - player.width, player.x
+<script>
+(function () {
+  if (window.__gaBridge) return;
+  window.__gaBridge = true;
+  window.__pressed = window.__pressed || {};
+  function setKey(e, on) {
+    if (!e) return;
+    window.__pressed[e.key] = on;
+    window.__pressed[e.code] = on;
+    if (e.key) window.__pressed[e.key.toLowerCase()] = on;
+  }
+  window.addEventListener('keydown', function (e) {
+    setKey(e, true);
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  }, true);
+  window.addEventListener('keyup', function (e) { setKey(e, false); }, true);
+  window.addEventListener('message', function (ev) {
+    var d = ev.data || {};
+    if (d.type !== 'KEY_EVENT') return;
+    var fake = { key: d.key, code: d.code, keyCode: d.keyCode };
+    setKey(fake, d.eventType !== 'keyup');
+    try {
+      var ke = new KeyboardEvent(d.eventType || 'keydown', {
+        key: d.key, code: d.code, bubbles: true, cancelable: true
+      });
+      window.dispatchEvent(ke);
+      document.dispatchEvent(ke);
+    } catch (err) {}
+  });
+  function tick() {
+    if (window.__gaForceMove === false) {
+      requestAnimationFrame(tick);
+      return;
+    }
+    var p = (window.__gameState && window.__gameState.player) || window.player;
+    if (p && typeof p.x === 'number') {
+      var speed = Number(p.speed) || 5;
+      var k = window.__pressed;
+      if (k.ArrowLeft || k.a || k.KeyA) p.x -= speed;
+      if (k.ArrowRight || k.d || k.KeyD) p.x += speed;
+      if (k.ArrowUp || k.w || k.KeyW) p.y -= speed;
+      if (k.ArrowDown || k.s || k.KeyS) p.y += speed;
+      var c = document.querySelector('canvas');
+      var cw = (c && c.width) || 800;
+      var ch = (c && c.height) || 600;
+      var w = p.width || 24, h = p.height || 24;
+      p.x = Math.max(0, Math.min(cw - w, p.x));
+      p.y = Math.max(0, Math.min(ch - h, p.y));
+      window.__gameState = window.__gameState || {};
+      window.__gameState.player = Object.assign({}, window.__gameState.player || {}, {
+        x: p.x, y: p.y, width: w, height: h, speed: speed, health: p.health
+      });
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  var canvas = document.querySelector('canvas');
+  if (canvas) {
+    canvas.setAttribute('tabindex', '0');
+    canvas.addEventListener('click', function () { canvas.focus(); });
+  }
+})();
+</script>

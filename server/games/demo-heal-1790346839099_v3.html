@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dungeon Crawler</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        #canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="800" height="600"></canvas>
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const keys = {};
+        let player = {
+            x: 400,
+            y: 300,
+            width: 50,
+            height: 50,
+            health: 100,
+            speed: 5,
+            color: 'red'
+        };
+        let score = 0;
+        let status = 'playing';
+        let entities = [];
+        let fireballs = [];
+        let collectibles = [];
+
+        for (let i = 0; i < 10; i++) {
+            fireballs.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                width: 20,
+                height: 20,
+                speedX: Math.random() * 5,
+                speedY: Math.random() * 5,
+                color: 'orange'
+            });
+        }
+
+        for (let i = 0; i < 5; i++) {
+            collectibles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                width: 20,
+                height: 20,
+                color: 'green'
+            });
+        }
+
+        window.addEventListener('keydown', (e) => {
+            keys[e.key] = true;
+            keys[e.key.toLowerCase()] = true;
+        });
+
+        window.addEventListener('keyup', (e) => {
+            keys[e.key] = false;
+            keys[e.key.toLowerCase()] = false;
+        });
+
+        function update() {
+            if (keys.ArrowLeft || keys.a) {
+                player.x -= player.speed;
+                player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            }
+            if (keys.ArrowRight || keys.d) {
+                player.x += player.speed;
+                player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+            }
+            if (keys.ArrowUp || keys.w) {
+                player.y -= player.speed;
+                player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+            }
+            if (keys.ArrowDown || keys.s) {
+                player.y += player.speed;
+                player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+            }
+
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+            if (player.y < 0) player.y = 0;
+            if (player.y + player.height > canvas.height) player.y = canvas.height - player.height;
+
+            for (let i = fireballs.length - 1; i >= 0; i--) {
+                fireballs[i].x += fireballs[i].speedX;
+                fireballs[i].y += fireballs[i].speedY;
+                if (fireballs[i].x < 0 || fireballs[i].x + fireballs[i].width > canvas.width || fireballs[i].y < 0 || fireballs[i].y + fireballs[i].height > canvas.height) {
+                    fireballs.splice(i, 1);
+                }
+                if (checkCollision(player, fireballs[i])) {
+                    player.health -= 10;
+                    fireballs.splice(i, 1);
+                    status = 'lost';
+                }
+            }
+
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                collectibles[i].x += Math.random() * 2 - 1;
+                collectibles[i].y += Math.random() * 2 - 1;
+                if (collectibles[i].x < 0 || collectibles[i].x + collectibles[i].width > canvas.width || collectibles[i].y < 0 || collectibles[i].y + collectibles[i].height > canvas.height) {
+                    collectibles.splice(i, 1);
+                }
+                if (checkCollision(player, collectibles[i])) {
+                    score++;
+                    collectibles.splice(i, 1);
+                }
+            }
+
+            if (player.health <= 0) status = 'lost';
+            if (score >= 10) status = 'won';
+
+            window.__gameState = {
+                player: {
+                    x: player.x,
+                    y: player.y,
+                    width: player.width,
+                    height: player.height,
+                    health: player.health,
+                    speed: player.speed
+                },
+                score: score,
+                status: status,
+                entities: entities
+            };
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            for (let i = fireballs.length - 1; i >= 0; i--) {
+                ctx.fillStyle = fireballs[i].color;
+                ctx.fillRect(fireballs[i].x, fireballs[i].y, fireballs[i].width, fireballs[i].height);
+            }
+            for (let i = collectibles.length - 1; i >= 0; i--) {
+                ctx.fillStyle = collectibles[i].color;
+                ctx.fillRect(collectibles[i].x, collectibles[i].y, collectibles[i].width, collectibles[i].height);
+            }
+            ctx.fillStyle = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.font = '24px Arial';
+            ctx.fillStyle = 'white';
+            ctx.fillText(`Score: ${score}`, 10, 30);
+            ctx.fillText(`Health: ${player.health}`, 10, 60);
+            ctx.fillText(status, 10, 90);
+            if (status === 'won') {
+                ctx.font = '48px Arial';
+                ctx.fillStyle = 'white';
+                ctx.fillText('You Won!', canvas.width / 2 - 120, canvas.height / 2);
+            } else if (status === 'lost') {
+                ctx.font = '48px Arial';
+                ctx.fillStyle = 'white';
+                ctx.fillText('Game Over!', canvas.width / 2 - 120, canvas.height / 2);
+            }
+        }
+
+        function checkCollision(a, b) {
+            if (a.x + a.width > b.x && a.x < b.x + b.width && a.y + a.height > b.y && a.y < b.y + b.height) {
+                return true;
+            }
+            return false;
+        }
+
+        function loop() {
+            update();
+            draw();
+            requestAnimationFrame(loop);
+        }
+
+        loop();
+    </script>
+</body>
+</html>

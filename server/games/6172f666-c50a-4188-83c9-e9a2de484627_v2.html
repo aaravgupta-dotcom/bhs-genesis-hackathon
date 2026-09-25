@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Snake Fury</title>
+<style>
+body{margin:0;background:#111;display:flex;justify-content:center;align-items:center;height:100vh;}
+canvas{background:#222;display:block;}
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+/* ---------- Input handling ---------- */
+const keys = {};
+window.addEventListener('keydown', e => {
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  keys[e.key] = true;
+  keys[e.key.toLowerCase()] = true;
+  if (e.key === 'r' && window.__gameState.status !== 'playing') restart();
+});
+window.addEventListener('keyup', e => {
+  keys[e.key] = false;
+  keys[e.key.toLowerCase()] = false;
+});
+
+/* ---------- Canvas setup ---------- */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
+canvas.addEventListener('click', () => window.focus());
+
+/* ---------- Game state ---------- */
+let player, apple, segments, dir, nextDir, grow, score, status;
+let moveAccX = 0, moveAccY = 0;   // <-- accumulator for sub‑grid movement
+
+function init() {
+  player = {x:200, y:200, width:20, height:20, health:3, speed:200};
+  dir = {x:1, y:0};
+  nextDir = {x:1, y:0};
+  segments = [{x:player.x, y:player.y}];
+  grow = 0;
+  score = 0;
+  status = 'playing';
+  moveAccX = moveAccY = 0;
+  spawnApple();
+  updateState();
+}
+
+/* ---------- Apple ---------- */
+function spawnApple() {
+  let ok = false;
+  while (!ok) {
+    apple = {
+      x: Math.floor(Math.random() * (canvas.width/20)) * 20,
+      y: Math.floor(Math.random() * (canvas.height/20)) * 20,
+      width:20,
+      height:20
+    };
+    ok = !segments.some(s => s.x===apple.x && s.y===apple.y);
+  }
+}
+
+/* ---------- Collision ---------- */
+function checkAABB(a, b) {
+  // Fixed typo: use b.x and b.y for the other rectangle
+  return a.x < b.x + b.width &&
+         a.x + a.width > b.x &&
+         a.y < b.y + b.height &&
+         a.y + a.height > b.y;
+}
+
+/* ---------- Game update ---------- */
+function update(dt) {
+  // Direction changes
+  if (keys.ArrowUp && dir.y !== 1) nextDir = {x:0, y:-1};
+  if (keys.ArrowDown && dir.y !== -1) nextDir = {x:0, y:1};
+  if (keys.ArrowLeft && dir.x !== 1) nextDir = {x:-1, y:0};
+  if (keys.ArrowRight && dir.x !== -1) nextDir = {x:1, y:0};
+  dir = nextDir;
+
+  // ----- Accumulator based movement -----
+  moveAccX += dir.x * player.speed * dt;
+  moveAccY += dir.y * player.speed * dt;
+
+  // Apply whole‑cell moves when accumulator reaches 20px
+  while (Math.abs(moveAccX) >= 20) {
+    player.x += Math.sign(moveAccX) * 20;
+    moveAccX -= Math.sign(moveAccX) * 20;
+  }
+  while (Math.abs(moveAccY) >= 20) {
+    player.y += Math.sign(moveAccY) * 20;
+    moveAccY -= Math.sign(moveAccY) * 20;
+  }
+
+  // Wall collision
+  if (player.x < 0 || player.x + player.width > canvas.width ||
+      player.y < 0 || player.y + player.height > canvas.height) {
+    player.health--;
+    resetSnake();
+    if (player.health <= 0) status = 'lost';
+  }
+
+  // Move snake body
+  segments.unshift({x:player.x, y:player.y});
+  if (grow > 0) {
+    grow--;
+  } else {
+    segments.pop();
+  }
+
+  // Self collision
+  for (let i = 1; i < segments.length; i++) {
+    if (segments[i].x === player.x && segments[i].y === player.y) {
+      player.health--;
+      resetSnake();
+      if (player.health <= 0) status = 'lost';
+      break;
+    }
+  }
+
+  // Apple collision
+  if (checkAABB(player, apple)) {
+    score += 10;
+    grow += 3;
+    spawnApple();
+  }
+
+  updateState();
+}
+
+/* ---------- Reset snake after hit ---------- */
+function resetSnake() {
+  player.x = 200;
+  player.y = 200;
+  dir = {x:1, y:0};
+  nextDir = {x:1, y:0};
+  segments = [{x:player.x, y:player.y}];
+  grow = 0;
+  moveAccX = moveAccY = 0;
+}
+
+/* ---------- Rendering ---------- */
+function render() {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  // Snake
+  ctx.fillStyle = '#0f0';
+  segments.forEach(s => ctx.fillRect(s.x, s.y, 20, 20));
+
+  // Apple
+  ctx.fillStyle = '#f00';
+  ctx.fillRect(apple.x, apple.y, 20, 20);
+
+  // HUD
+  ctx.fillStyle = '#fff';
+  ctx.font = '16px sans-serif';
+  ctx.fillText('Score: '+score, 10, 20);
+  ctx.fillText('Hearts: '+player.health, 10, 40);
+
+  // Game over overlay
+  if

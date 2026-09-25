@@ -1,0 +1,231 @@
+/* GamePreview.css */
+
+.game-preview {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.game-preview.thinking {
+  border-color: var(--fuchsia);
+  animation: pulse-border 2s ease-in-out infinite;
+  box-shadow: 0 0 20px var(--fuchsia-glow);
+}
+
+/* ── Fullscreen modal view ── */
+.game-preview.preview-fullscreen {
+  position: fixed;
+  inset: 16px;
+  z-index: 10000;
+  box-shadow: 0 0 60px rgba(0,0,0,0.8), 0 0 40px var(--fuchsia-glow);
+  border: 2px solid var(--fuchsia);
+  border-radius: 12px;
+}
+
+/* ── Header ── */
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(0,0,0,0.3);
+  flex-shrink: 0;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preview-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+}
+
+.preview-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.preview-attempt-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+}
+
+.preview-control-btn {
+  font-size: 0.68rem;
+  padding: 3px 8px;
+}
+
+/* ── Interactive Play Bar ── */
+.preview-play-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: rgba(216, 18, 91, 0.08);
+  border-bottom: 1px solid var(--border-fuchsia);
+  cursor: pointer;
+  transition: all 0.2s;
+  gap: 10px;
+}
+
+.preview-play-bar:hover, .preview-play-bar.focused {
+  background: rgba(216, 18, 91, 0.15);
+  border-bottom-color: var(--fuchsia);
+}
+
+.play-bar-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--text-primary);
+  flex-wrap: wrap;
+}
+
+.play-icon {
+  color: var(--fuchsia);
+  font-size: 0.75rem;
+}
+
+.play-controls {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  margin-left: 6px;
+}
+
+.play-focus-btn {
+  font-size: 0.7rem;
+  padding: 3px 10px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+/* ── Viewport ── */
+.preview-viewport {
+  position: relative;
+  flex: 1;
+  min-height: 480px;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Thinking animation ── */
+.preview-thinking {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px;
+}
+
+.thinking-animation {
+  position: relative;
+  width: 80px; height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thinking-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  animation: spinner 2s linear infinite;
+}
+.ring-1 { width: 80px; height: 80px; border-top-color: var(--fuchsia); }
+.ring-2 { width: 60px; height: 60px; border-top-color: rgba(216,18,91,0.5); animation-direction: reverse; animation-duration: 1.5s; }
+.ring-3 { width: 40px; height: 40px; border-top-color: rgba(216,18,91,0.25); animation-duration: 1s; }
+
+.thinking-core {
+  position: absolute;
+  color: var(--fuchsia);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.thinking-label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* ── Overlay (when testing candidate build) ── */
+.preview-thinking-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(22, 24, 32, 0.75);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--fuchsia);
+  z-index: 5;
+  font-weight: 600;
+}
+
+/* ── Empty state ── */
+.preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  padding: 40px;
+}
+.preview-empty p {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+}
+
+/* ── Iframe ── */
+.preview-iframe-wrap {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  display: flex;
+  transition: opacity 0.2s;
+}
+
+.preview-iframe {
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  border: none;
+  background: #000;
+  display: block;
+}
+
+/* ── Error ── */
+.preview-error {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px;
+  color: #ef4444;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}

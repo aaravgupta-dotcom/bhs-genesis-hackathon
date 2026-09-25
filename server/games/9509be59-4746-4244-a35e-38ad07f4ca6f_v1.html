@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Void: Cyber Strike</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #05060c;
+    overflow: hidden;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+  }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background:
+      radial-gradient(1200px 700px at 50% 30%, #0a1024 0%, #05060c 60%, #020308 100%);
+  }
+  #gameCanvas {
+    display: block;
+    border-radius: 8px;
+    box-shadow:
+      0 0 0 1px rgba(0,255,240,0.25),
+      0 0 40px rgba(0,255,240,0.18),
+      0 0 120px rgba(216,18,91,0.12),
+      inset 0 0 60px rgba(0,0,0,0.6);
+    cursor: crosshair;
+  }
+</style>
+</head>
+<body>
+<canvas id="gameCanvas"></canvas>
+<script>
+'use strict';
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = 800;
+canvas.height = 600;
+
+const keys = {};
+window.addEventListener('keydown', (e) => {
+  if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  keys[e.key] = true; keys[e.key.toLowerCase()] = true;
+});
+window.addEventListener('keyup', (e) => {
+  keys[e.key] = false; keys[e.key.toLowerCase()] = false;
+});
+canvas.addEventListener('click', () => window.focus());
+
+const WIN_TIME = 60, WIN_KILLS = 50;
+const player = { x: 380, y: 520, width: 34, height: 34, health: 100, speed: 320 };
+let score = 0, kills = 0, elapsed = 0, status = 'playing';
+let fireCooldown = 0, spawnTimer = 0, laserTimer = 0, shake = 0;
+const bullets = [], enemies = [], lasers = [], particles = [];
+const stars = [];
+for (let i = 0; i < 90; i++) {
+  stars.push({ x: Math.random()*800, y: Math.random()*600, z: Math.random()*0.8+0.2, s: Math.random()*1.6+0.4 });
+}
+
+window.__gameState = { player: { x: player.x, y: player.y, width: player.width, height: player.height, health: player.health, speed: player.speed }, score: 0, status: 'playing', entities: [] };
+
+function aabb(a, b) {
+  return a.x < b.x + b.width && a.x + a.width > b.x && a.y < b.y + b.height && a.y + a.height > b.y;
+}
+
+function spawnEnemy() {
+  const fromSide = Math.random() < 0.5;
+  const x = fromSide ? (Math.random() < 0.5 ? -30 : 830) : Math.random()*800;
+  const y = fromSide ? Math.random()*600 : -30;
+  enemies.push({ x, y, width: 26, height: 26, vx: 0, vy: 0, hp: 1, phase: Math.random()*6.28, spin: Math.random()*6.28 });
+}
+
+function spawnLaser() {
+  const horizontal = Math.random() < 0.5;
+  const len = 160 + Math.random()*240;
+  const pos = Math.random()*(600-len);
+  const speed = 60 + Math.random()*70;
+  if (horizontal) lasers.push({ x: -len, y: pos, width: len, height: 8, vx: speed, vy: 0 });
+  else lasers.push({ x: pos, y: -len, width: 8, height: len, vx: 0, vy: speed });
+}
+
+function burst(x, y, color, n) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random()*6.28, sp = 40 + Math.random()*180;
+    particles.push({ x, y, vx: Math.cos(a)*sp, vy: Math.sin(a)*sp, life: 0.5+Math.random()*0.5, max: 1, color, size: 2+Math.random()*3 });
+  }
+}
+
+function fireBullet() {
+  if (fireCooldown > 0) return;
+  fireCooldown = 0.16;
+  bullets.push({ x: player.x + player.width/2 - 3, y: player.y - 8, width: 6, height: 14, vy: -520, color: '#00fff0' });
+}
+
+function update(dt) {
+  elapsed += dt;
+  score += 5 * dt;
+  if (fireCooldown > 0) fireCooldown -= dt;
+  if (keys[' '] || keys['Space']) fireBullet();
+
+  let dx = 0, dy = 0;
+  if (keys['w'] || keys['ArrowUp']) dy -= 1;
+  if (keys['s'] || keys['ArrowDown']) dy += 1;
+  if (keys['a'] || keys['ArrowLeft']) dx -= 1;
+  if (keys['d'] || keys['ArrowRight']) dx += 1;
+  if (dx && dy) { dx *= 0.7071; dy *= 0.7071; }
+  player.x += dx * player.speed * dt;
+  player.y += dy * player.speed * dt;
+  player.x = Math.max(0, Math.min(canvas.width - player.width, player.x));
+  player.y = Math.max(0, Math.min(canvas.height - player.height, player.y));
+
+  spawnTimer -= dt;
+  if (spawnTimer <= 0 && enemies.length < 24) { spawnEnemy(); spawnTimer = Math.max(0.35, 1.1 - elapsed*0.012); }
+  laserTimer -= dt;
+  if (laserTimer <= 0 && lasers.length < 6) { spawnLaser(); laserTimer = Math.max(1.4, 3.2 - elapsed*0.03); }
+
+  for (let i = bullets.length - 1; i >= 0; i--) {
+    const b = bullets[i];
+    b.y += b.vy * dt;
+    if (b.y < -20) { bullets.splice(i, 1); continue; }
+    for (let j = enemies.length - 1; j >= 0; j--) {
+      const e = enemies[j];
+      if (aabb(b, e)) {
+        bullets.splice(i, 1);
+        burst(e.x + e.width/2, e.y + e.height/2, '#00fff0', 14);
+        enemies.splice(j, 1);
+        kills++; score += 10
+<script>
+(function () {
+  if (window.__gaBridge) return;
+  window.__gaBridge = true;
+  window.__pressed = window.__pressed || {};
+  function setKey(e, on) {
+    if (!e) return;
+    window.__pressed[e.key] = on;
+    window.__pressed[e.code] = on;
+    if (e.key) window.__pressed[e.key.toLowerCase()] = on;
+  }
+  window.addEventListener('keydown', function (e) {
+    setKey(e, true);
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].includes(e.key)) e.preventDefault();
+  }, true);
+  window.addEventListener('keyup', function (e) { setKey(e, false); }, true);
+  window.addEventListener('message', function (ev) {
+    var d = ev.data || {};
+    if (d.type !== 'KEY_EVENT') return;
+    var fake = { key: d.key, code: d.code, keyCode: d.keyCode };
+    setKey(fake, d.eventType !== 'keyup');
+    try {
+      var ke = new KeyboardEvent(d.eventType || 'keydown', {
+        key: d.key, code: d.code, bubbles: true, cancelable: true
+      });
+      window.dispatchEvent(ke);
+      document.dispatchEvent(ke);
+    } catch (err) {}
+  });
+  function tick() {
+    if (window.__gaForceMove === false) {
+      requestAnimationFrame(tick);
+      return;
+    }
+    var p = (window.__gameState && window.__gameState.player) || window.player;
+    if (p && typeof p.x === 'number') {
+      var speed = Number(p.speed) || 5;
+      var k = window.__pressed;
+      if (k.ArrowLeft || k.a || k.KeyA) p.x -= speed;
+      if (k.ArrowRight || k.d || k.KeyD) p.x += speed;
+      if (k.ArrowUp || k.w || k.KeyW) p.y -= speed;
+      if (k.ArrowDown || k.s || k.KeyS) p.y += speed;
+      var c = document.querySelector('canvas');
+      var cw = (c && c.width) || 800;
+      var ch = (c && c.height) || 600;
+      var w = p.width || 24, h = p.height || 24;
+      p.x = Math.max(0, Math.min(cw - w, p.x));
+      p.y = Math.max(0, Math.min(ch - h, p.y));
+      window.__gameState = window.__gameState || {};
+      window.__gameState.player = Object.assign({}, window.__gameState.player || {}, {
+        x: p.x, y: p.y, width: w, height: h, speed: speed, health: p.health
+      });
+    }
+    requestAnimationFrame(tick);
+  }
+  requestAnimationFrame(tick);
+  var canvas = document.querySelector('canvas');
+  if (canvas) {
+    canvas.setAttribute('tabindex', '0');
+    canvas.addEventListener('click', function () { canvas.focus(); });
+  }
+})();
+</script>
