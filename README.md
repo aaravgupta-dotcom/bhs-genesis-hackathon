@@ -76,7 +76,6 @@
 │   ├── utils/                  # Watchdog timeouts, SSE loggers, AST patcher
 │   └── index.js                # Express server entry point (Port 3001)
 │
-├── hackathon-portal/           # Static Genesis Hackathon event portal & directives
 ├── package.json                # Root orchestration scripts
 └── README.md                   # Project documentation
 ```
