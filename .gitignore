@@ -17,6 +17,10 @@ build/
 server/screenshots/
 *.log
 
+# Generated Runtime Games (keep repository clean)
+server/games/*.html
+!server/games/demo.html
+
 # Databases & Runtime state
 server/data/
 *.sqlite
